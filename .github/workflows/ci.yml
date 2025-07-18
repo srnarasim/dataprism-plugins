@@ -1,0 +1,67 @@
+name: Plugin Ecosystem CI/CD
+on: [push, pull_request]
+
+jobs:
+  framework-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build plugin framework
+        run: npm run build:framework
+      - name: Run framework tests
+        run: npm run test:framework
+      - name: Security tests
+        run: npm run test:security
+      - name: Type check
+        run: npm run type-check
+      - name: Lint code
+        run: npm run lint
+  
+  plugins-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        plugin: [formula-engine, file-connectors, visualization, llm-providers, semantic-clustering, performance-monitor]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build plugin framework
+        run: npm run build:framework
+      - name: Build plugin - ${{ matrix.plugin }}
+        run: npm run build:plugin -- ${{ matrix.plugin }}
+      - name: Test plugin - ${{ matrix.plugin }}
+        run: npm run test:plugin -- ${{ matrix.plugin }}
+      - name: Validate plugin manifest
+        run: npm run validate:plugin -- ${{ matrix.plugin }}
+  
+  plugin-compatibility:
+    needs: [framework-build, plugins-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build all
+        run: npm run build:all
+      - name: Test plugin compatibility
+        run: npm run test:plugin-compatibility
+      - name: Bundle size check
+        run: npm run size-check:plugins
