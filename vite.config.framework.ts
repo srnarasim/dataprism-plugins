@@ -4,7 +4,7 @@ import { resolve } from "path";
 // Framework-only bundle - lighter weight, plugins loaded separately
 export default defineConfig({
   build: {
-    outDir: "dist/bundles",
+    outDir: "dist/framework-bundles",
     lib: {
       entry: resolve(__dirname, "packages/src/index.ts"),
       name: "DataPrismFramework",
