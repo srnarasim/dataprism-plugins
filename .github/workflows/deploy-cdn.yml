@@ -59,30 +59,15 @@ jobs:
         run: |
           mkdir -p cdn-dist
           
-          # Debug: Show what was built
-          echo "=== Debug: Build outputs ==="
-          ls -la dist/ || echo "No dist directory"
-          ls -la dist/bundles/ || echo "No dist/bundles directory"
-          ls -la dist/framework-bundles/ || echo "No dist/framework-bundles directory"
-          
           # Copy complete plugin bundles (main CDN files)
           if [ -d "dist/bundles" ]; then
-            echo "Copying complete bundles from dist/bundles/* to cdn-dist/"
             cp -r dist/bundles/* cdn-dist/
-          else
-            echo "WARNING: dist/bundles directory not found!"
           fi
           
           # Copy framework-only bundles
           if [ -d "dist/framework-bundles" ]; then
-            echo "Copying framework bundles from dist/framework-bundles/* to cdn-dist/"
             cp -r dist/framework-bundles/* cdn-dist/
-          else
-            echo "WARNING: dist/framework-bundles directory not found!"
           fi
-          
-          echo "=== Final CDN files ==="
-          ls -la cdn-dist/
           
           # Copy framework dist if it exists
           if [ -d "dist/framework" ] && [ "$(ls -A dist/framework)" ]; then
