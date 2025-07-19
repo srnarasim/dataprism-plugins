@@ -16,10 +16,13 @@
     "./performance-monitor": "./dist/plugins/performance-monitor/index.js"
   },
   "scripts": {
-    "build": "npm run build:framework && npm run build:plugins",
+    "build": "npm run build:framework && npm run build:plugins && npm run build:bundles",
     "build:framework": "cd packages && npm run build",
     "build:plugins": "cd packages/out-of-box && npm run build",
     "build:plugin": "cd packages/out-of-box && npm run build",
+    "build:bundles": "npm run build:bundle-full && npm run build:bundle-framework",
+    "build:bundle-full": "vite build --config vite.config.bundle.ts",
+    "build:bundle-framework": "vite build --config vite.config.framework.ts",
     "test": "npm run test:framework && npm run test:plugins",
     "test:framework": "vitest run tests/framework",
     "test:plugins": "vitest run tests/plugins/simple-plugins.test.ts",
@@ -49,7 +52,8 @@
     "jsdom": "^26.1.0",
     "typescript": "^5.2.0",
     "vite": "^5.4.8",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "terser": "^5.24.0"
   },
   "peerDependencies": {
     "@dataprism/core": "^1.0.0"

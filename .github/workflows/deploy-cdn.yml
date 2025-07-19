@@ -1,0 +1,289 @@
+name: Deploy Plugin CDN to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install framework dependencies
+        run: cd packages && npm ci
+        
+      - name: Install plugin dependencies
+        run: cd packages/out-of-box && npm ci
+        
+      - name: Build framework
+        run: npm run build:framework
+        
+      - name: Build plugins
+        run: npm run build:plugins
+        
+      - name: Build CDN bundles
+        run: npm run build:bundles
+        
+      - name: Create GitHub Pages deployment
+        run: |
+          mkdir -p cdn-dist
+          
+          # Copy bundled files
+          cp -r dist/bundles/* cdn-dist/
+          
+          # Copy framework dist
+          mkdir -p cdn-dist/framework
+          cp -r dist/framework/* cdn-dist/framework/
+          
+          # Copy individual plugins
+          mkdir -p cdn-dist/plugins
+          cp -r dist/plugins/* cdn-dist/plugins/
+          
+          # Create plugins manifest
+          cat > cdn-dist/plugins-manifest.json << 'EOF'
+          {
+            "name": "DataPrism Plugins CDN",
+            "version": "1.0.0",
+            "bundles": {
+              "complete": {
+                "iife": "./dataprism-plugins.min.js",
+                "umd": "./dataprism-plugins.umd.js",
+                "es": "./dataprism-plugins.es.js",
+                "description": "Complete bundle with framework and all plugins",
+                "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor"]
+              },
+              "framework": {
+                "iife": "./dataprism-framework.min.js",
+                "umd": "./dataprism-framework.umd.js",
+                "es": "./dataprism-framework.es.js",
+                "description": "Framework only, load plugins separately"
+              }
+            },
+            "plugins": {
+              "csv-importer": {
+                "path": "./plugins/file-connectors/index.js",
+                "description": "Import and parse CSV files",
+                "size": "~45KB",
+                "dependencies": ["papaparse"],
+                "worker": "./workers/csv-parser-worker.js"
+              },
+              "observable-charts": {
+                "path": "./plugins/visualization/index.js", 
+                "description": "Interactive data visualization",
+                "size": "~30KB",
+                "dependencies": ["d3", "plotly.js"]
+              },
+              "semantic-clustering": {
+                "path": "./plugins/semantic-clustering/index.js",
+                "description": "AI-powered data clustering",
+                "size": "~25KB", 
+                "dependencies": ["ml-kmeans"],
+                "worker": "./workers/clustering-worker.js"
+              },
+              "performance-monitor": {
+                "path": "./plugins/performance-monitor/index.js",
+                "description": "Monitor analytics performance",
+                "size": "~20KB",
+                "dependencies": []
+              }
+            },
+            "workers": {
+              "csv-parser": "./workers/csv-parser-worker.js",
+              "clustering": "./workers/clustering-worker.js"
+            }
+          }
+          EOF
+          
+          # Copy worker files if they exist
+          if [ -d "dist/workers" ]; then
+            mkdir -p cdn-dist/workers
+            cp -r dist/workers/* cdn-dist/workers/
+          fi
+          
+          # Create index.html
+          cat > cdn-dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>DataPrism Plugins CDN</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                  body { 
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      margin: 0; padding: 40px; background: #f8fafc; line-height: 1.6;
+                  }
+                  .container { max-width: 1200px; margin: 0 auto; }
+                  .header { text-align: center; margin-bottom: 40px; }
+                  .header h1 { font-size: 2.5em; margin: 0; color: #1a202c; }
+                  .header p { font-size: 1.1em; color: #718096; margin: 20px 0; }
+                  .section { background: white; border-radius: 8px; padding: 30px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .section h2 { margin-top: 0; color: #2d3748; }
+                  .code { background: #f7fafc; padding: 15px; border-radius: 4px; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.9em; margin: 10px 0; }
+                  .plugins { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
+                  .plugin { background: #f7fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #3182ce; }
+                  .plugin h3 { margin: 0 0 10px 0; color: #3182ce; }
+                  .plugin .size { color: #38a169; font-weight: bold; font-size: 0.9em; }
+                  .plugin .deps { color: #805ad5; font-size: 0.85em; margin: 5px 0; }
+                  .badge { background: #38a169; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; }
+                  .files { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 20px 0; }
+                  .file { background: #f7fafc; padding: 15px; border-radius: 4px; }
+                  .file h3 { margin: 0 0 10px 0; color: #3182ce; }
+                  .file a { color: #3182ce; text-decoration: none; display: block; margin: 5px 0; }
+                  .file a:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      <h1>DataPrism Plugins CDN</h1>
+                      <p>Extensible plugin framework with official plugins for data processing and visualization</p>
+                  </div>
+                  
+                  <div class="section">
+                      <h2>🚀 Quick Start</h2>
+                      
+                      <h3>Complete Bundle (Recommended)</h3>
+                      <div class="code">
+          import { PluginManager, loadDataPrismCore } from "https://srnarasim.github.io/dataprism-plugins/dataprism-plugins.min.js";
+          
+          const pluginManager = new PluginManager();
+          const csvPlugin = pluginManager.getPlugin("csv-importer");
+          const data = await csvPlugin.import(file);
+                      </div>
+                      
+                      <h3>Framework Only (Load Plugins Separately)</h3>
+                      <div class="code">
+          import { PluginManager } from "https://srnarasim.github.io/dataprism-plugins/dataprism-framework.min.js";
+          import csvPlugin from "https://srnarasim.github.io/dataprism-plugins/plugins/file-connectors/index.js";
+          
+          const manager = new PluginManager();
+          manager.register(csvPlugin);
+                      </div>
+                  </div>
+                  
+                  <div class="section">
+                      <h2>📦 Available Bundles</h2>
+                      <div class="files">
+                          <div class="file">
+                              <h3>Complete Bundle <span class="badge">~232KB</span></h3>
+                              <p>Framework + All plugins + Dependencies</p>
+                              <a href="./dataprism-plugins.min.js">dataprism-plugins.min.js</a>
+                              <a href="./dataprism-plugins.umd.js">dataprism-plugins.umd.js</a>
+                              <a href="./dataprism-plugins.es.js">dataprism-plugins.es.js</a>
+                          </div>
+                          <div class="file">
+                              <h3>Framework Only <span class="badge">~15KB</span></h3>
+                              <p>Plugin framework without plugins</p>
+                              <a href="./dataprism-framework.min.js">dataprism-framework.min.js</a>
+                              <a href="./dataprism-framework.umd.js">dataprism-framework.umd.js</a>
+                              <a href="./dataprism-framework.es.js">dataprism-framework.es.js</a>
+                          </div>
+                      </div>
+                  </div>
+                  
+                  <div class="section">
+                      <h2>🔌 Official Plugins</h2>
+                      <div class="plugins">
+                          <div class="plugin">
+                              <h3>🗂️ CSV Importer</h3>
+                              <div class="size">~45KB</div>
+                              <div class="deps">Dependencies: papaparse</div>
+                              <p>Import and parse CSV files with advanced configuration options and web worker support.</p>
+                          </div>
+                          <div class="plugin">
+                              <h3>📊 Observable Charts</h3>
+                              <div class="size">~30KB</div>
+                              <div class="deps">Dependencies: d3, plotly.js</div>
+                              <p>Create interactive data visualizations with multiple chart types and real-time updates.</p>
+                          </div>
+                          <div class="plugin">
+                              <h3>🧠 Semantic Clustering</h3>
+                              <div class="size">~25KB</div>
+                              <div class="deps">Dependencies: ml-kmeans</div>
+                              <p>AI-powered data clustering and pattern recognition with web worker processing.</p>
+                          </div>
+                          <div class="plugin">
+                              <h3>⚡ Performance Monitor</h3>
+                              <div class="size">~20KB</div>
+                              <div class="deps">No external dependencies</div>
+                              <p>Monitor query performance, memory usage, and analytics execution metrics.</p>
+                          </div>
+                      </div>
+                  </div>
+                  
+                  <div class="section">
+                      <h2>🔧 Individual Components</h2>
+                      <div class="files">
+                          <div class="file">
+                              <h3>Plugin Framework</h3>
+                              <a href="./framework/index.js">framework/index.js</a>
+                              <a href="./framework/index.cjs">framework/index.cjs</a>
+                          </div>
+                          <div class="file">
+                              <h3>Plugin Files</h3>
+                              <a href="./plugins/file-connectors/index.js">CSV Importer</a>
+                              <a href="./plugins/visualization/index.js">Observable Charts</a>
+                              <a href="./plugins/semantic-clustering/index.js">Semantic Clustering</a>
+                              <a href="./plugins/performance-monitor/index.js">Performance Monitor</a>
+                          </div>
+                          <div class="file">
+                              <h3>Web Workers</h3>
+                              <a href="./workers/csv-parser-worker.js">CSV Parser Worker</a>
+                              <a href="./workers/clustering-worker.js">Clustering Worker</a>
+                          </div>
+                          <div class="file">
+                              <h3>Metadata</h3>
+                              <a href="./plugins-manifest.json">plugins-manifest.json</a>
+                          </div>
+                      </div>
+                  </div>
+                  
+                  <div class="section">
+                      <h2>📚 Resources</h2>
+                      <p>
+                          <a href="https://github.com/srnarasim/dataprism-plugins">📁 Source Code</a> |
+                          <a href="https://srnarasim.github.io/dataprism-apps/">📖 Documentation</a> |
+                          <a href="https://srnarasim.github.io/dataprism-apps/demo/">🚀 Live Demo</a> |
+                          <a href="https://srnarasim.github.io/dataprism-core/">🔧 Core Engine</a>
+                      </p>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+          # Create .nojekyll
+          touch cdn-dist/.nojekyll
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './cdn-dist'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
