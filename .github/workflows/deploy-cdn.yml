@@ -59,16 +59,22 @@ jobs:
         run: |
           mkdir -p cdn-dist
           
-          # Copy bundled files
-          cp -r dist/bundles/* cdn-dist/
+          # Copy bundled files (main CDN files)
+          if [ -d "dist/bundles" ]; then
+            cp -r dist/bundles/* cdn-dist/
+          fi
           
-          # Copy framework dist
-          mkdir -p cdn-dist/framework
-          cp -r dist/framework/* cdn-dist/framework/
+          # Copy framework dist if it exists
+          if [ -d "dist/framework" ] && [ "$(ls -A dist/framework)" ]; then
+            mkdir -p cdn-dist/framework
+            cp -r dist/framework/* cdn-dist/framework/
+          fi
           
-          # Copy individual plugins
-          mkdir -p cdn-dist/plugins
-          cp -r dist/plugins/* cdn-dist/plugins/
+          # Copy individual plugins if they exist
+          if [ -d "dist/plugins" ] && [ "$(ls -A dist/plugins)" ]; then
+            mkdir -p cdn-dist/plugins
+            cp -r dist/plugins/* cdn-dist/plugins/
+          fi
           
           # Create plugins manifest
           cat > cdn-dist/plugins-manifest.json << 'EOF'
