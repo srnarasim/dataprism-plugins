@@ -59,9 +59,20 @@ jobs:
         run: |
           mkdir -p cdn-dist
           
+          # Debug: Show what was built
+          echo "=== Debug: Build outputs ==="
+          ls -la dist/ || echo "No dist directory"
+          ls -la dist/bundles/ || echo "No dist/bundles directory"
+          
           # Copy bundled files (main CDN files)
           if [ -d "dist/bundles" ]; then
+            echo "Copying from dist/bundles/* to cdn-dist/"
             cp -r dist/bundles/* cdn-dist/
+            echo "Files copied:"
+            ls -la cdn-dist/
+          else
+            echo "ERROR: dist/bundles directory not found!"
+            exit 1
           fi
           
           # Copy framework dist if it exists
