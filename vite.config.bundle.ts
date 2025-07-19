@@ -5,7 +5,7 @@ export default defineConfig({
   build: {
     outDir: "dist/bundles",
     lib: {
-      entry: resolve(__dirname, "packages/src/index.ts"),
+      entry: resolve(__dirname, "src/complete-bundle.ts"),
       name: "DataPrismPlugins",
       fileName: (format) => `dataprism-plugins.${format === 'iife' ? 'min' : format}.js`,
       formats: ["iife", "umd", "es"],

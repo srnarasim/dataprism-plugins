@@ -31,10 +31,20 @@ jobs:
         run: npm ci
         
       - name: Install framework dependencies
-        run: cd packages && npm ci
+        run: |
+          if [ -f "packages/package-lock.json" ]; then
+            cd packages && npm ci
+          elif [ -f "packages/package.json" ]; then
+            cd packages && npm install
+          fi
         
       - name: Install plugin dependencies
-        run: cd packages/out-of-box && npm ci
+        run: |
+          if [ -f "packages/out-of-box/package-lock.json" ]; then
+            cd packages/out-of-box && npm ci
+          elif [ -f "packages/out-of-box/package.json" ]; then
+            cd packages/out-of-box && npm install
+          fi
         
       - name: Build framework
         run: npm run build:framework
