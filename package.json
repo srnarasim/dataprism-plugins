@@ -17,9 +17,9 @@
   },
   "scripts": {
     "build": "npm run build:framework && npm run build:plugins",
-    "build:framework": "cd packages/plugins && npm run build:framework",
-    "build:plugins": "cd packages/plugins && npm run build:plugins",
-    "build:plugin": "vite build --config vite.plugins.config.ts --mode plugin",
+    "build:framework": "cd packages && npm run build",
+    "build:plugins": "cd packages/out-of-box && npm run build",
+    "build:plugin": "cd packages/out-of-box && npm run build",
     "test": "npm run test:framework && npm run test:plugins",
     "test:framework": "vitest run tests/framework",
     "test:plugins": "vitest run tests/plugins",

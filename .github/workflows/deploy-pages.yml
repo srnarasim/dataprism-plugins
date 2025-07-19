@@ -1,0 +1,219 @@
+name: Deploy Plugin Bundles to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build plugin framework
+        run: npm run build:framework
+        
+      - name: Build plugins
+        run: npm run build:plugins
+        
+      - name: Create GitHub Pages deployment
+        run: |
+          mkdir -p dist
+          
+          # Copy plugin framework
+          cp -r packages/dist dist/framework
+          
+          # Copy plugin bundles
+          cp -r packages/out-of-box/dist dist/plugins
+          
+          # Copy plugin workers
+          cp -r packages/out-of-box/public/workers dist/workers
+          
+          # Create plugins manifest
+          cat > dist/plugins-manifest.json << 'EOF'
+          {
+            "version": "1.0.0",
+            "build": "${{ github.sha }}",
+            "timestamp": "${{ github.run_number }}",
+            "plugins": {
+              "csv-importer": {
+                "name": "CSV Importer",
+                "version": "1.0.0",
+                "description": "Import and parse CSV files with automatic schema detection",
+                "entry": "plugins/index.js",
+                "worker": "workers/csv-parser-worker.js",
+                "size": "~45KB"
+              },
+              "observable-charts": {
+                "name": "Observable Charts",
+                "version": "1.0.0",
+                "description": "Create interactive charts using Observable Plot",
+                "entry": "plugins/index.js",
+                "size": "~30KB"
+              },
+              "semantic-clustering": {
+                "name": "Semantic Clustering",
+                "version": "1.0.0",
+                "description": "AI-powered data clustering and analysis",
+                "entry": "plugins/index.js",
+                "worker": "workers/clustering-worker.js",
+                "size": "~25KB"
+              },
+              "performance-monitor": {
+                "name": "Performance Monitor",
+                "version": "1.0.0",
+                "description": "Real-time performance monitoring and optimization",
+                "entry": "plugins/index.js",
+                "size": "~20KB"
+              }
+            }
+          }
+          EOF
+          
+          # Create index.html for the plugins
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>DataPrism Plugins - Official Plugin Repository</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; }
+                  .container { max-width: 1000px; margin: 0 auto; }
+                  .plugin { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+                  .plugin h3 { margin-top: 0; color: #333; }
+                  .plugin-meta { color: #666; font-size: 0.9em; margin: 10px 0; }
+                  .file-list { background: white; padding: 15px; border-radius: 4px; margin: 10px 0; }
+                  .file-list a { display: inline-block; margin: 5px 10px 5px 0; color: #0066cc; text-decoration: none; }
+                  .file-list a:hover { text-decoration: underline; }
+                  .version { color: #666; font-size: 0.9em; }
+                  .framework { background: #e8f4f8; border-left: 4px solid #0066cc; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>DataPrism Plugins</h1>
+                  <p class="version">Built from commit: <code>${{ github.sha }}</code></p>
+                  
+                  <div class="plugin framework">
+                      <h2>Plugin Framework</h2>
+                      <p>Core plugin system infrastructure for DataPrism</p>
+                      <div class="file-list">
+                          <a href="framework/index.js">framework/index.js</a>
+                          <a href="framework/index.cjs">framework/index.cjs</a>
+                          <a href="plugins-manifest.json">plugins-manifest.json</a>
+                      </div>
+                  </div>
+                  
+                  <div class="plugin">
+                      <h3>CSV Importer</h3>
+                      <p>Import and parse CSV files with automatic schema detection and data type inference</p>
+                      <div class="plugin-meta">Size: ~45KB | Worker: Yes | Format: ES Module</div>
+                      <div class="file-list">
+                          <a href="plugins/index.js">plugin bundle</a>
+                          <a href="workers/csv-parser-worker.js">web worker</a>
+                      </div>
+                  </div>
+                  
+                  <div class="plugin">
+                      <h3>Observable Charts</h3>
+                      <p>Create interactive, responsive charts using Observable Plot with DataPrism integration</p>
+                      <div class="plugin-meta">Size: ~30KB | Worker: No | Format: ES Module</div>
+                      <div class="file-list">
+                          <a href="plugins/index.js">plugin bundle</a>
+                      </div>
+                  </div>
+                  
+                  <div class="plugin">
+                      <h3>Semantic Clustering</h3>
+                      <p>AI-powered data clustering and semantic analysis for intelligent data exploration</p>
+                      <div class="plugin-meta">Size: ~25KB | Worker: Yes | Format: ES Module</div>
+                      <div class="file-list">
+                          <a href="plugins/index.js">plugin bundle</a>
+                          <a href="workers/clustering-worker.js">web worker</a>
+                      </div>
+                  </div>
+                  
+                  <div class="plugin">
+                      <h3>Performance Monitor</h3>
+                      <p>Real-time performance monitoring, optimization suggestions, and resource tracking</p>
+                      <div class="plugin-meta">Size: ~20KB | Worker: No | Format: ES Module</div>
+                      <div class="file-list">
+                          <a href="plugins/index.js">plugin bundle</a>
+                      </div>
+                  </div>
+                  
+                  <div class="plugin">
+                      <h2>Usage</h2>
+                      <p>Load plugins in your DataPrism application:</p>
+                      <pre style="background: #f0f0f0; padding: 15px; border-radius: 4px; overflow-x: auto;">
+          // Load plugin framework
+          import { PluginManager } from 'https://srnarasim.github.io/dataprism-plugins/framework/index.js';
+          
+          // Initialize plugin manager
+          const pluginManager = new PluginManager();
+          
+          // Load specific plugins
+          await pluginManager.loadPlugin('https://srnarasim.github.io/dataprism-plugins/plugins/index.js');
+          
+          // Or load from manifest
+          const manifest = await fetch('https://srnarasim.github.io/dataprism-plugins/plugins-manifest.json');
+          await pluginManager.loadFromManifest(manifest);
+                      </pre>
+                  </div>
+                  
+                  <div class="plugin">
+                      <h2>Documentation</h2>
+                      <p>
+                          <a href="https://github.com/srnarasim/dataprism-plugins">GitHub Repository</a> |
+                          <a href="https://srnarasim.github.io/dataprism-apps">Full Documentation</a> |
+                          <a href="https://srnarasim.github.io/dataprism-core">Core Engine</a>
+                      </p>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+          # Create .nojekyll to ensure GitHub Pages serves all files
+          touch dist/.nojekyll
+          
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        with:
+          enablement: true
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
