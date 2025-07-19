@@ -1,11 +1,12 @@
 import {
   IIntegrationPlugin,
-  PluginContext,
   PluginManifest,
+  PluginContext,
   PluginCapability,
-  Dataset,
+  LocalDataset as Dataset,
   DataType,
-} from "@dataprism/plugins";
+  withDataPrismTypes,
+} from "../../types";
 import Papa from "papaparse";
 import {
   WorkerManager,

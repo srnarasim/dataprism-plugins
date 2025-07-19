@@ -3,16 +3,9 @@ import {
   PluginContext,
   PluginManifest,
   PluginCapability,
-  Dataset,
+  LocalDataset as Dataset,
   DataType,
-  VisualizationType,
-  RenderConfig,
-  Dimensions,
-  InteractionEvent,
-  InteractionFeature,
-  ExportFormat,
-  VisualizationConfig,
-} from "@dataprism/plugins";
+} from "../../types";
 import * as d3 from "d3";
 import { PerformanceTracker } from "@shared/performance-tracker.js";
 

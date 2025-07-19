@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         external: [
           "@dataprism/plugins",
+          "@dataprism/core",
+          "https://srnarasim.github.io/dataprism-core/orchestration/index.js",
           "papaparse",
           "d3",
           "plotly.js-dist",
@@ -23,6 +25,8 @@ export default defineConfig(({ mode }) => {
         output: {
           globals: {
             "@dataprism/plugins": "DataPrismPlugins",
+            "@dataprism/core": "DataPrismCore",
+            "https://srnarasim.github.io/dataprism-core/orchestration/index.js": "DataPrismCore",
             papaparse: "Papa",
             d3: "d3",
             "plotly.js-dist": "Plotly",

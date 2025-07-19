@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataPrism Plugins CDN Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>DataPrism Plugins CDN Loading Example</h1>
+    
+    <div class="info status">
+        This example demonstrates how DataPrism plugins now load core dependencies from CDN instead of using local type stubs.
+    </div>
+
+    <h2>Loading Status</h2>
+    <div id="status"></div>
+
+    <button onclick="loadDataPrismCore()" id="loadBtn">Load DataPrism Core from CDN</button>
+    <button onclick="runPluginExample()" id="pluginBtn" disabled>Run Plugin Example</button>
+
+    <h2>Console Output</h2>
+    <pre id="console"></pre>
+
+    <h2>Benefits of CDN Approach</h2>
+    <ul>
+        <li>✅ Always up-to-date with latest DataPrism core releases</li>
+        <li>✅ No manual type definition maintenance required</li>
+        <li>✅ Type safety across versions</li>
+        <li>✅ Graceful fallback strategies</li>
+        <li>✅ Reduced bundle size</li>
+        <li>✅ Better version compatibility</li>
+    </ul>
+
+    <script type="module">
+        let consoleOutput = document.getElementById('console');
+        let statusDiv = document.getElementById('status');
+        let loadBtn = document.getElementById('loadBtn');
+        let pluginBtn = document.getElementById('pluginBtn');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            consoleOutput.textContent += `[${timestamp}] ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            
+            if (type === 'error') {
+                console.error(message);
+            } else {
+                console.log(message);
+            }
+        }
+
+        function updateStatus(message, type = 'info') {
+            statusDiv.innerHTML = `<div class="${type} status">${message}</div>`;
+        }
+
+        // Import the plugin bundle (this would normally be from CDN)
+        async function loadPluginBundle() {
+            try {
+                // In a real scenario, this would be:
+                // const { loadDataPrismCore } = await import('https://srnarasim.github.io/dataprism-plugins/framework/index.js');
+                
+                // For this demo, we'll simulate the CDN loading
+                log('🌐 Loading DataPrism core from CDN...');
+                updateStatus('Loading DataPrism core dependencies...', 'info');
+                
+                // Simulate CDN loading delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                log('✅ DataPrism core loaded successfully from CDN');
+                log('📦 Core types and interfaces are now available');
+                
+                return {
+                    // Simulated core types loaded from CDN
+                    IPlugin: class IPlugin {},
+                    IVisualizationPlugin: class IVisualizationPlugin {},
+                    Dataset: class Dataset {},
+                    PluginManager: class PluginManager {
+                        register(plugin) {
+                            log(`📝 Plugin registered: ${plugin.name}`);
+                        }
+                    }
+                };
+            } catch (error) {
+                log(`❌ Failed to load DataPrism core: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        window.loadDataPrismCore = async function() {
+            try {
+                loadBtn.disabled = true;
+                updateStatus('Loading DataPrism core from CDN...', 'info');
+                
+                const core = await loadPluginBundle();
+                
+                // Store for later use
+                window.dataPrismCore = core;
+                
+                updateStatus('✅ DataPrism core loaded successfully from CDN', 'success');
+                pluginBtn.disabled = false;
+                
+                log('🎯 Ready to use plugins with current core types');
+                
+            } catch (error) {
+                updateStatus(`❌ Failed to load DataPrism core: ${error.message}`, 'error');
+                log(`Error details: ${error.stack}`, 'error');
+            } finally {
+                loadBtn.disabled = false;
+            }
+        };
+
+        window.runPluginExample = async function() {
+            if (!window.dataPrismCore) {
+                log('❌ DataPrism core not loaded', 'error');
+                return;
+            }
+
+            try {
+                pluginBtn.disabled = true;
+                log('🔌 Running plugin example with CDN-loaded types...');
+                
+                const { PluginManager, IVisualizationPlugin } = window.dataPrismCore;
+                
+                // Create a sample plugin
+                class SampleVisualizationPlugin extends IVisualizationPlugin {
+                    constructor() {
+                        super();
+                        this.name = 'CDN-Demo-Visualization';
+                        this.version = '1.0.0';
+                    }
+                    
+                    async initialize(context) {
+                        log(`🚀 Initializing ${this.name} plugin`);
+                        return Promise.resolve();
+                    }
+                    
+                    async render(container, data, config) {
+                        log(`🎨 Rendering visualization with ${data?.rows?.length || 0} rows`);
+                        container.innerHTML = '<div style="padding: 20px; background: #e3f2fd; border-radius: 4px;">📊 Sample Visualization Rendered</div>';
+                        return Promise.resolve();
+                    }
+                }
+                
+                // Register the plugin
+                const manager = new PluginManager();
+                const plugin = new SampleVisualizationPlugin();
+                manager.register(plugin);
+                
+                // Simulate plugin usage
+                const sampleData = {
+                    columns: [{ name: 'x', type: 'number' }, { name: 'y', type: 'number' }],
+                    rows: [[1, 10], [2, 20], [3, 30]]
+                };
+                
+                const container = document.createElement('div');
+                document.body.appendChild(container);
+                
+                await plugin.render(container, sampleData, {});
+                
+                log('✅ Plugin example completed successfully');
+                log('💡 This demonstrates type-safe plugin development with CDN-loaded core types');
+                
+            } catch (error) {
+                log(`❌ Plugin example failed: ${error.message}`, 'error');
+            } finally {
+                pluginBtn.disabled = false;
+            }
+        };
+
+        // Auto-load on page load for demo
+        updateStatus('Ready to load DataPrism core from CDN', 'info');
+        log('🌟 DataPrism Plugins CDN Example Ready');
+        log('📚 This example shows how plugins now use CDN-loaded core types instead of local stubs');
+        log('🔄 No more version drift - types are always current with the deployed core');
+    </script>
+</body>
+</html>

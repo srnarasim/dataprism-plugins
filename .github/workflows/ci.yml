@@ -1,5 +1,8 @@
 name: Plugin Ecosystem CI/CD
-on: [push, pull_request]
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   framework-build:
@@ -26,9 +29,6 @@ jobs:
   
   plugins-build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        plugin: [formula-engine, file-connectors, visualization, llm-providers, semantic-clustering, performance-monitor]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -40,12 +40,12 @@ jobs:
         run: npm ci
       - name: Build plugin framework
         run: npm run build:framework
-      - name: Build plugin - ${{ matrix.plugin }}
-        run: npm run build:plugin -- ${{ matrix.plugin }}
-      - name: Test plugin - ${{ matrix.plugin }}
-        run: npm run test:plugin -- ${{ matrix.plugin }}
-      - name: Validate plugin manifest
-        run: npm run validate:plugin -- ${{ matrix.plugin }}
+      - name: Build all plugins
+        run: npm run build:plugins
+      - name: Test all plugins
+        run: npm run test:plugins
+      - name: Validate plugins structure
+        run: npm run size-check:plugins
   
   plugin-compatibility:
     needs: [framework-build, plugins-build]

@@ -40,14 +40,43 @@ jobs:
         run: |
           mkdir -p dist
           
-          # Copy plugin framework
-          cp -r packages/dist dist/framework
+          # Check what was built
+          echo "=== Checking build outputs ==="
+          ls -la packages/
+          ls -la packages/out-of-box/ || true
+          ls -la packages/out-of-box/dist/ || true
+          ls -la packages/dist/ || true
+          
+          # Copy plugin framework (if exists)
+          if [ -d "packages/dist" ]; then
+            cp -r packages/dist dist/framework
+            echo "✅ Copied framework from packages/dist"
+          else
+            echo "❌ Framework dist not found at packages/dist"
+            exit 1
+          fi
           
           # Copy plugin bundles
-          cp -r packages/out-of-box/dist dist/plugins
+          if [ -d "packages/out-of-box/dist" ]; then
+            cp -r packages/out-of-box/dist dist/plugins
+            echo "✅ Copied plugins from packages/out-of-box/dist"
+          else
+            echo "❌ Plugin dist not found at packages/out-of-box/dist"
+            exit 1
+          fi
           
-          # Copy plugin workers
-          cp -r packages/out-of-box/public/workers dist/workers
+          # Copy plugin workers (prefer built workers over public workers)
+          if [ -d "packages/out-of-box/dist/workers" ]; then
+            cp -r packages/out-of-box/dist/workers dist/workers
+            echo "✅ Copied workers from packages/out-of-box/dist/workers (built workers)"
+          elif [ -d "packages/out-of-box/public/workers" ]; then
+            mkdir -p dist/workers
+            cp -r packages/out-of-box/public/workers/* dist/workers/
+            echo "✅ Copied workers from packages/out-of-box/public/workers (source workers)"
+          else
+            echo "⚠️ No workers found, creating empty workers directory"
+            mkdir -p dist/workers
+          fi
           
           # Create plugins manifest
           cat > dist/plugins-manifest.json << 'EOF'
@@ -163,21 +192,32 @@ jobs:
                   </div>
                   
                   <div class="plugin">
-                      <h2>Usage</h2>
-                      <p>Load plugins in your DataPrism application:</p>
+                      <h2>Usage with CDN Core Loading</h2>
+                      <p>Load plugins with DataPrism core from CDN (recommended):</p>
                       <pre style="background: #f0f0f0; padding: 15px; border-radius: 4px; overflow-x: auto;">
-          // Load plugin framework
-          import { PluginManager } from 'https://srnarasim.github.io/dataprism-plugins/framework/index.js';
+          // Import plugin bundles with CDN core loading
+          import { loadDataPrismCore } from 'https://srnarasim.github.io/dataprism-plugins/plugins/index.js';
           
-          // Initialize plugin manager
+          // Load DataPrism core from CDN (types always current)
+          const coreTypes = await loadDataPrismCore({
+            baseUrl: 'https://srnarasim.github.io/dataprism-core',
+            fallbackToPeer: true
+          });
+          
+          // Use loaded types
+          const { PluginManager } = coreTypes;
           const pluginManager = new PluginManager();
           
-          // Load specific plugins
+          // Load plugins (automatically uses current core types)
           await pluginManager.loadPlugin('https://srnarasim.github.io/dataprism-plugins/plugins/index.js');
-          
-          // Or load from manifest
-          const manifest = await fetch('https://srnarasim.github.io/dataprism-plugins/plugins-manifest.json');
-          await pluginManager.loadFromManifest(manifest);
+                      </pre>
+                      
+                      <h3>Legacy Usage (without CDN core)</h3>
+                      <pre style="background: #f8f8f8; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 0.9em;">
+          // Traditional approach (requires @dataprism/core as peer dependency)
+          import { PluginManager } from 'https://srnarasim.github.io/dataprism-plugins/framework/index.js';
+          const pluginManager = new PluginManager();
+          await pluginManager.loadPlugin('https://srnarasim.github.io/dataprism-plugins/plugins/index.js');
                       </pre>
                   </div>
                   

@@ -1,4 +1,4 @@
-import { Dataset, DataType } from "@dataprism/plugins";
+import { LocalDataset as Dataset, DataType } from "../types";
 
 export interface DataValidationResult {
   isValid: boolean;

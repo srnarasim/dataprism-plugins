@@ -3,7 +3,7 @@ import {
   PluginContext,
   PluginManifest,
   PluginCapability,
-} from "@dataprism/plugins";
+} from "../../types";
 import {
   PerformanceTracker,
   PerformanceMetrics,

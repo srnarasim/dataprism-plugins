@@ -4,7 +4,7 @@ import {
   PluginContext,
   PluginManifest,
   PluginCapability,
-  Dataset,
+  LocalDataset as Dataset,
   DataType,
   VisualizationType,
   RenderConfig,
@@ -13,7 +13,7 @@ import {
   InteractionFeature,
   ExportFormat,
   VisualizationConfig,
-} from "@dataprism/plugins";
+} from "../../types";
 import { kmeans } from "ml-kmeans";
 import { DBSCAN } from "density-clustering";
 import { WorkerManager, WorkerTask } from "@shared/worker-manager.js";
