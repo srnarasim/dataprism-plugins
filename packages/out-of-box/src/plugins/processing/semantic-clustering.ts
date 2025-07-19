@@ -16,8 +16,8 @@ import {
 } from "../../types";
 import { kmeans } from "ml-kmeans";
 import { DBSCAN } from "density-clustering";
-import { WorkerManager, WorkerTask } from "@shared/worker-manager.js";
-import { PerformanceTracker } from "@shared/performance-tracker.js";
+import { WorkerManager, WorkerTask } from "../../shared/worker-manager.js";
+import { PerformanceTracker } from "../../shared/performance-tracker.js";
 import * as d3 from "d3";
 
 export interface ClusteringConfig {

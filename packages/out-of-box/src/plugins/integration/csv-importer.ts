@@ -12,9 +12,9 @@ import {
   WorkerManager,
   WorkerTask,
   WorkerResult,
-} from "@shared/worker-manager.js";
-import { DataUtils, TypeInferenceResult } from "@shared/data-utils.js";
-import { PerformanceTracker } from "@shared/performance-tracker.js";
+} from "../../shared/worker-manager.js";
+import { DataUtils, TypeInferenceResult } from "../../shared/data-utils.js";
+import { PerformanceTracker } from "../../shared/performance-tracker.js";
 
 export interface CSVImportConfig {
   delimiter?: string;

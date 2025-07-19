@@ -7,7 +7,7 @@ import {
   DataType,
 } from "../../types";
 import * as d3 from "d3";
-import { PerformanceTracker } from "@shared/performance-tracker.js";
+import { PerformanceTracker } from "../../shared/performance-tracker.js";
 
 export interface ChartSpec {
   type: "bar" | "line" | "area" | "scatter" | "histogram";

@@ -8,7 +8,7 @@ import {
   PerformanceTracker,
   PerformanceMetrics,
   PerformanceAlert,
-} from "@shared/performance-tracker.js";
+} from "../../shared/performance-tracker.js";
 import * as d3 from "d3";
 
 export interface PerformanceMonitorConfig {
