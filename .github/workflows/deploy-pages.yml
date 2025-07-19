@@ -1,8 +1,9 @@
 name: Deploy Plugin Bundles to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  # Disabled to avoid conflict with CDN deployment
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 permissions:
