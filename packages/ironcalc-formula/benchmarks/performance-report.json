@@ -1,0 +1,128 @@
+{
+  "timestamp": "2025-07-20T13:51:10.504Z",
+  "allTargetsMet": true,
+  "bundleSize": {
+    "wasmSizeBytes": 113194,
+    "jsSizeBytes": 13100,
+    "distSizeBytes": 20396,
+    "totalSizeBytes": 146690,
+    "totalSizeMB": 0.1398944854736328,
+    "target": "<5MB",
+    "passed": true
+  },
+  "initializationTime": null,
+  "formulaEvaluationTimes": {
+    "individual": [
+      1.009431682718752,
+      3.0332438245123168,
+      4.594332777323597,
+      5.161357591349312,
+      5.2989289143086635,
+      6.223912383062955,
+      7.244705798090184,
+      13.32820779576294,
+      14.861548866470669,
+      16.472652906203912
+    ],
+    "average": 7.722832253980331,
+    "p95": 16.472652906203912,
+    "max": 16.472652906203912,
+    "min": 1.009431682718752,
+    "target": "<500ms for 95%",
+    "passed": true
+  },
+  "bulkOperationTimes": [
+    {
+      "batchSize": 10,
+      "totalTime": 9.605170185988092,
+      "avgTimePerFormula": 0.9605170185988092
+    },
+    {
+      "batchSize": 100,
+      "totalTime": 14.210340371976184,
+      "avgTimePerFormula": 0.14210340371976182
+    },
+    {
+      "batchSize": 1000,
+      "totalTime": 63.815510557964274,
+      "avgTimePerFormula": 0.06381551055796428
+    },
+    {
+      "batchSize": 5000,
+      "totalTime": 267.03438638283245,
+      "avgTimePerFormula": 0.05340687727656649
+    }
+  ],
+  "memoryUsage": [
+    {
+      "rows": 1000,
+      "description": "1K rows",
+      "baseMemoryMB": 50,
+      "dataMemoryMB": 0.19073486328125,
+      "cacheMemoryMB": 0.0476837158203125,
+      "totalMemoryMB": 50.23841857910156,
+      "totalMemoryGB": 0.04906095564365387,
+      "target": "<4GB for 1M rows",
+      "passed": true
+    },
+    {
+      "rows": 10000,
+      "description": "10K rows",
+      "baseMemoryMB": 50,
+      "dataMemoryMB": 1.9073486328125,
+      "cacheMemoryMB": 0.476837158203125,
+      "totalMemoryMB": 52.384185791015625,
+      "totalMemoryGB": 0.051156431436538696,
+      "target": "<4GB for 1M rows",
+      "passed": true
+    },
+    {
+      "rows": 100000,
+      "description": "100K rows",
+      "baseMemoryMB": 50,
+      "dataMemoryMB": 19.073486328125,
+      "cacheMemoryMB": 4.76837158203125,
+      "totalMemoryMB": 73.84185791015625,
+      "totalMemoryGB": 0.07211118936538696,
+      "target": "<4GB for 1M rows",
+      "passed": true
+    },
+    {
+      "rows": 1000000,
+      "description": "1M rows",
+      "baseMemoryMB": 50,
+      "dataMemoryMB": 190.73486328125,
+      "cacheMemoryMB": 47.6837158203125,
+      "totalMemoryMB": 288.4185791015625,
+      "totalMemoryGB": 0.28165876865386963,
+      "target": "<4GB for 1M rows",
+      "passed": true
+    }
+  ],
+  "browserCompatibility": {
+    "Chrome": {
+      "minVersion": 90,
+      "wasmSupport": true,
+      "esModules": true,
+      "supported": true
+    },
+    "Firefox": {
+      "minVersion": 88,
+      "wasmSupport": true,
+      "esModules": true,
+      "supported": true
+    },
+    "Safari": {
+      "minVersion": 14,
+      "wasmSupport": true,
+      "esModules": true,
+      "supported": true
+    },
+    "Edge": {
+      "minVersion": 90,
+      "wasmSupport": true,
+      "esModules": true,
+      "supported": true
+    }
+  }
+}

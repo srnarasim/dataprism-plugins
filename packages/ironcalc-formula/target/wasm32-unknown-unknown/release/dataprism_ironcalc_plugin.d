@@ -1,0 +1,1 @@
+/Users/i851894/projects/temp-restructure/dataprism-plugins/packages/ironcalc-formula/target/wasm32-unknown-unknown/release/dataprism_ironcalc_plugin.wasm: /Users/i851894/projects/temp-restructure/dataprism-plugins/packages/ironcalc-formula/src/lib.rs
