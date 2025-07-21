@@ -514,6 +514,45 @@ export class IronCalcFormulaPlugin implements IDataProcessorPlugin, IIntegration
     throw new Error(`Unsupported export format: ${format}`);
   }
 
+  // Function library methods for UI integration
+  getFunctions(): Array<{name: string, category: string, description: string, syntax: string, example: string}> {
+    // Excel-compatible functions provided by IronCalc
+    const functions = [
+      'SUM', 'AVERAGE', 'COUNT', 'MIN', 'MAX', 'IF', 'VLOOKUP', 'CONCATENATE',
+      'LEN', 'LEFT', 'RIGHT', 'MID', 'UPPER', 'LOWER', 'TRIM', 'ROUND',
+      'ABS', 'SQRT', 'POWER', 'MOD', 'TODAY', 'NOW', 'DATE', 'YEAR', 'MONTH', 'DAY',
+      'AND', 'OR', 'NOT', 'TRUE', 'FALSE', 'INDEX', 'MATCH', 'LOOKUP',
+      'SUMIF', 'COUNTIF', 'AVERAGEIF', 'MEDIAN', 'MODE', 'STDEV', 'VAR',
+      'COS', 'SIN', 'TAN', 'ACOS', 'ASIN', 'ATAN', 'LN', 'LOG', 'LOG10',
+      'EXP', 'PI', 'RADIANS', 'DEGREES', 'CEILING', 'FLOOR', 'INT',
+      'RAND', 'RANDBETWEEN', 'SIGN', 'FACTORIAL', 'GCD', 'LCM'
+    ].map(name => ({
+      name,
+      category: this.getCategoryForFunction(name),
+      description: `${name} function - Excel-compatible formula`,
+      syntax: `${name}(arguments)`,
+      example: `=${name}(A1:A10)`
+    }));
+
+    return functions;
+  }
+
+  getFunctionHelp(functionName: string): {name: string, category: string, description: string, syntax: string, example: string} | null {
+    const functions = this.getFunctions();
+    return functions.find(f => f.name === functionName) || null;
+  }
+
+  private getCategoryForFunction(name: string): string {
+    if (['SUM', 'AVERAGE', 'COUNT', 'MIN', 'MAX', 'MEDIAN', 'MODE', 'STDEV', 'VAR'].includes(name)) return 'Statistical';
+    if (['IF', 'AND', 'OR', 'NOT', 'TRUE', 'FALSE'].includes(name)) return 'Logical';
+    if (['LEN', 'LEFT', 'RIGHT', 'MID', 'UPPER', 'LOWER', 'TRIM', 'CONCATENATE'].includes(name)) return 'Text';
+    if (['ROUND', 'ABS', 'SQRT', 'POWER', 'MOD', 'COS', 'SIN', 'TAN', 'ACOS', 'ASIN', 'ATAN', 'LN', 'LOG', 'LOG10', 'EXP', 'PI', 'RADIANS', 'DEGREES', 'CEILING', 'FLOOR', 'INT', 'RAND', 'RANDBETWEEN', 'SIGN', 'FACTORIAL', 'GCD', 'LCM'].includes(name)) return 'Math';
+    if (['TODAY', 'NOW', 'DATE', 'YEAR', 'MONTH', 'DAY'].includes(name)) return 'Date';
+    if (['VLOOKUP', 'INDEX', 'MATCH', 'LOOKUP'].includes(name)) return 'Lookup';
+    if (['SUMIF', 'COUNTIF', 'AVERAGEIF'].includes(name)) return 'Conditional';
+    return 'General';
+  }
+
   // Core functionality methods
   async execute(operation: string, params: any): Promise<any> {
     this.ensureInitialized();
