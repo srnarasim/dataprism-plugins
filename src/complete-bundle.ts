@@ -17,7 +17,8 @@ import {
   createProcessingPlugin,
   createUtilityPlugin,
   getAvailablePlugins,
-  getPluginsByCategory
+  getPluginsByCategory,
+  IronCalcFormulaPlugin
 } from "../packages/out-of-box/src/index.js";
 
 // Main plugin loader function for CDN users
@@ -52,6 +53,9 @@ export const BUNDLE_INFO = {
   categories: ["visualization", "integration", "processing", "utility"]
 };
 
+// Direct plugin exports for CDN usage
+export { IronCalcFormulaPlugin as IronCalcPlugin };
+
 // Export plugin utilities for easy access
 export const PluginUtils = {
   createVisualizationPlugin,
@@ -62,5 +66,6 @@ export const PluginUtils = {
   getPluginsByCategory,
   PLUGIN_REGISTRY,
   PLUGIN_METADATA,
-  BUNDLE_INFO
+  BUNDLE_INFO,
+  IronCalcPlugin: IronCalcFormulaPlugin
 };

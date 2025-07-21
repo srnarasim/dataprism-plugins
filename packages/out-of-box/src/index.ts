@@ -35,6 +35,10 @@ export const PLUGIN_REGISTRY = {
       import("./plugins/processing/semantic-clustering.js").then(
         (m) => new m.SemanticClusteringPlugin(),
       ),
+    "ironcalc-formula": () =>
+      import("./plugins/processing/ironcalc-formula.js").then(
+        (m) => new m.IronCalcFormulaPlugin(),
+      ),
   },
   utility: {
     "performance-monitor": () =>
@@ -69,6 +73,14 @@ export const PLUGIN_METADATA = {
       "Generate embeddings, run K-means/DBSCAN, and surface interactive cluster views",
     version: "1.0.0",
     tags: ["clustering", "ml", "embeddings", "visualization"],
+  },
+  "ironcalc-formula": {
+    name: "IronCalc Formula Engine",
+    category: "processing",
+    description:
+      "Excel-compatible formula engine powered by IronCalc WASM with 180+ functions",
+    version: "0.1.0",
+    tags: ["formula", "excel", "spreadsheet", "calculation", "wasm"],
   },
   "performance-monitor": {
     name: "Performance Monitor",
