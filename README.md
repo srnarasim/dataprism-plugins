@@ -32,12 +32,12 @@ const result = await manager.executePlugin('formula-engine', {
 
 ## Available Plugins
 
-- **formula-engine**: Mathematical and statistical operations
-- **file-connectors**: CSV, JSON, Parquet import/export
-- **visualization**: Chart rendering and interaction
-- **llm-providers**: OpenAI, Anthropic, local model integration
-- **semantic-clustering**: Data clustering and analysis
-- **performance-monitor**: System monitoring and metrics
+- **ironcalc-formula**: Excel-compatible formula engine with 180+ functions powered by IronCalc WASM
+- **langgraph-integration**: Graph-based agentic analytics workflows using LangGraph for multi-agent coordination
+- **csv-importer**: High-performance CSV/TSV import with streaming and automatic type inference
+- **observable-charts**: Interactive charts and visualizations built with Observable Framework and D3
+- **semantic-clustering**: ML-powered data clustering with K-means/DBSCAN and embedding generation
+- **performance-monitor**: Real-time system monitoring with FPS, memory, and query performance metrics
 
 ## Development
 

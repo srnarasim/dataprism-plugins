@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IronCalc Formula Engine Plugin - DataPrism Plugins</title>
+    <meta name="description" content="Excel-compatible formula engine powered by IronCalc WebAssembly with 180+ functions for high-performance spreadsheet calculations">
+    
+    <style>
+        :root {
+            --primary-color: #1976d2;
+            --primary-dark: #1565c0;
+            --secondary-color: #2196f3;
+            --accent-color: #03dac6;
+            --background-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --code-bg: #2d3748;
+            --code-text: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--surface-color);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .logo::before {
+            content: "📊";
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .breadcrumb {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* Main Content */
+        .main {
+            background: var(--surface-color);
+            margin: 2rem 0;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .plugin-hero {
+            background: linear-gradient(135deg, #4caf50, #8bc34a);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .plugin-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .plugin-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .plugin-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .toc {
+            background: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .toc h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 1rem;
+        }
+        
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        
+        .toc a:hover {
+            color: var(--primary-color);
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        ul, ol {
+            margin-bottom: 1rem;
+            margin-left: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+        }
+        
+        .code-block {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .code-block pre {
+            margin: 0;
+        }
+        
+        .language-label {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .feature-card h4 {
+            color: #4caf50;
+            margin: 0 0 0.5rem;
+        }
+        
+        .feature-card p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .formula-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .formula-example {
+            background: var(--background-color);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .formula-example code {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+        
+        .alert-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #1565c0;
+        }
+        
+        .alert-warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            color: #ef6c00;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #4caf50;
+            border: 2px solid #4caf50;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        @media (max-width: 768px) {
+            .plugin-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .plugin-meta {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="logo">IronCalc Formula Engine</a>
+                <div class="breadcrumb">
+                    <a href="../index.html">DataPrism Plugins</a> / <a href="#" style="color: var(--text-secondary);">IronCalc Formula Engine</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Plugin Hero -->
+            <section class="plugin-hero">
+                <h1>IronCalc Formula Engine</h1>
+                <p>Excel-compatible formula engine powered by IronCalc WebAssembly with 180+ functions for high-performance spreadsheet calculations</p>
+                <div class="plugin-meta">
+                    <div class="meta-item">Version: 0.1.0</div>
+                    <div class="meta-item">Category: Processing</div>
+                    <div class="meta-item">Functions: 180+</div>
+                    <div class="meta-item">License: MIT</div>
+                </div>
+            </section>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Table of Contents -->
+                <div class="toc">
+                    <h3>Table of Contents</h3>
+                    <ul>
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#quick-start">Quick Start</a></li>
+                        <li><a href="#formula-examples">Formula Examples</a></li>
+                        <li><a href="#supported-functions">Supported Functions</a></li>
+                        <li><a href="#performance">Performance</a></li>
+                        <li><a href="#integration">DataPrism Integration</a></li>
+                        <li><a href="#roadmap">Roadmap</a></li>
+                    </ul>
+                </div>
+
+                <!-- Overview -->
+                <section id="overview">
+                    <h2>Overview</h2>
+                    <p>The IronCalc Formula Engine plugin brings Excel-compatible spreadsheet calculations to DataPrism using the powerful IronCalc WebAssembly engine. Built in Rust and compiled to WebAssembly, it provides high-performance formula evaluation with over 180 Excel-compatible functions.</p>
+                    
+                    <p>IronCalc is an open-source spreadsheet engine that focuses on Excel compatibility, performance, and extensibility. The DataPrism integration allows you to leverage spreadsheet-style calculations within your analytical workflows.</p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> This plugin is currently in beta (v0.1.0) as IronCalc continues development toward v1.0. Some advanced Excel features may be limited.
+                    </div>
+                </section>
+
+                <!-- Features -->
+                <section id="features">
+                    <h2>Features</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>📊 Excel Compatibility</h4>
+                            <p>180+ Excel-compatible functions with plans to expand to 300+ as IronCalc matures.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>⚡ High Performance</h4>
+                            <p>WebAssembly-powered calculations supporting 100k+ cells with sub-second latency.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📁 XLSX Support</h4>
+                            <p>Import and export XLSX files with formula preservation and Excel compatibility.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔒 Browser Security</h4>
+                            <p>All calculations run locally in the browser with Rust/WASM memory sandboxing.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🧮 Formula Auditing</h4>
+                            <p>Comprehensive formula tracing, error handling, and dependency tracking.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔗 DataPrism Integration</h4>
+                            <p>Seamless integration with DataPrism's data pipeline and analytical capabilities.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Start -->
+                <section id="quick-start">
+                    <h2>Quick Start</h2>
+                    
+                    <h3>CDN Usage</h3>
+                    <div class="code-block">
+                        <div class="language-label">HTML</div>
+                        <pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/@dataprism/plugins@latest/dist/bundles/dataprism-plugins.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  // Initialize plugin manager
+  const manager = await DataPrismPlugins.createPluginManager();
+  
+  // Load IronCalc plugin
+  const formulaPlugin = await DataPrismPlugins.createProcessingPlugin('ironcalc-formula');
+  await manager.loadPlugin(formulaPlugin);
+  
+  // Evaluate formulas
+  const result = await manager.executePlugin('ironcalc-formula', {
+    operation: 'evaluate',
+    formula: 'SUM(A1:A10)',
+    context: {
+      A1: 10, A2: 20, A3: 30, A4: 40, A5: 50,
+      A6: 60, A7: 70, A8: 80, A9: 90, A10: 100
+    }
+  });
+  
+  console.log('SUM result:', result.value); // 550
+&lt;/script&gt;</code></pre>
+                    </div>
+
+                    <h3>NPM Installation</h3>
+                    <div class="code-block">
+                        <div class="language-label">bash</div>
+                        <pre><code>npm install @dataprism/plugins</code></pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="language-label">TypeScript</div>
+                        <pre><code>import { PluginManager } from '@dataprism/plugins';
+import { IronCalcFormulaPlugin } from '@dataprism/plugins/ironcalc-formula';
+
+const manager = new PluginManager();
+const plugin = new IronCalcFormulaPlugin();
+await manager.loadPlugin(plugin);
+
+// Evaluate complex formulas
+const result = await plugin.evaluateFormula('IF(AVERAGE(A1:A5) > 50, "High", "Low")', {
+  A1: 45, A2: 60, A3: 55, A4: 65, A5: 70
+});
+
+console.log(result); // "High"</code></pre>
+                    </div>
+                </section>
+
+                <!-- Formula Examples -->
+                <section id="formula-examples">
+                    <h2>Formula Examples</h2>
+                    <p>IronCalc supports a wide range of Excel-compatible formulas across multiple categories:</p>
+
+                    <div class="formula-examples">
+                        <div class="formula-example">
+                            <h4>Mathematical Functions</h4>
+                            <p><code>SUM(A1:A10)</code> - Sum range of cells</p>
+                            <p><code>AVERAGE(B1:B5)</code> - Calculate average</p>
+                            <p><code>MAX(C1:C20)</code> - Find maximum value</p>
+                            <p><code>ROUND(D1, 2)</code> - Round to 2 decimals</p>
+                        </div>
+
+                        <div class="formula-example">
+                            <h4>Logical Functions</h4>
+                            <p><code>IF(A1>50, "Pass", "Fail")</code> - Conditional logic</p>
+                            <p><code>AND(A1>0, B1<100)</code> - Logical AND</p>
+                            <p><code>OR(C1="Yes", D1="True")</code> - Logical OR</p>
+                            <p><code>NOT(E1=FALSE)</code> - Logical NOT</p>
+                        </div>
+
+                        <div class="formula-example">
+                            <h4>Text Functions</h4>
+                            <p><code>CONCATENATE(A1, " ", B1)</code> - Join text</p>
+                            <p><code>LEFT(C1, 5)</code> - Extract left characters</p>
+                            <p><code>UPPER(D1)</code> - Convert to uppercase</p>
+                            <p><code>LEN(E1)</code> - Get text length</p>
+                        </div>
+
+                        <div class="formula-example">
+                            <h4>Date Functions</h4>
+                            <p><code>TODAY()</code> - Current date</p>
+                            <p><code>YEAR(A1)</code> - Extract year</p>
+                            <p><code>DATEDIF(A1, B1, "days")</code> - Date difference</p>
+                            <p><code>WEEKDAY(C1)</code> - Day of week</p>
+                        </div>
+
+                        <div class="formula-example">
+                            <h4>Lookup Functions</h4>
+                            <p><code>VLOOKUP(A1, B:D, 2, FALSE)</code> - Vertical lookup</p>
+                            <p><code>INDEX(A:A, 5)</code> - Get value by index</p>
+                            <p><code>MATCH("value", B:B, 0)</code> - Find position</p>
+                            <p><code>CHOOSE(2, "A", "B", "C")</code> - Choose value</p>
+                        </div>
+
+                        <div class="formula-example">
+                            <h4>Statistical Functions</h4>
+                            <p><code>STDEV(A1:A100)</code> - Standard deviation</p>
+                            <p><code>CORREL(A:A, B:B)</code> - Correlation</p>
+                            <p><code>PERCENTILE(C:C, 0.9)</code> - 90th percentile</p>
+                            <p><code>COUNT(D:D)</code> - Count numeric values</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Supported Functions -->
+                <section id="supported-functions">
+                    <h2>Supported Functions</h2>
+                    <p>IronCalc currently supports 180+ Excel-compatible functions across these categories:</p>
+
+                    <ul>
+                        <li><strong>Mathematical & Trigonometric:</strong> SUM, AVERAGE, MAX, MIN, ROUND, SIN, COS, TAN, SQRT, POWER, ABS, CEILING, FLOOR</li>
+                        <li><strong>Statistical:</strong> COUNT, COUNTA, STDEV, VAR, MEDIAN, MODE, PERCENTILE, QUARTILE, CORREL, REGRESSION</li>
+                        <li><strong>Logical:</strong> IF, AND, OR, NOT, TRUE, FALSE, IFERROR, IFNA, SWITCH</li>
+                        <li><strong>Text:</strong> CONCATENATE, LEFT, RIGHT, MID, LEN, FIND, SEARCH, REPLACE, UPPER, LOWER, TRIM</li>
+                        <li><strong>Date & Time:</strong> TODAY, NOW, YEAR, MONTH, DAY, HOUR, MINUTE, SECOND, WEEKDAY, DATEDIF</li>
+                        <li><strong>Lookup & Reference:</strong> VLOOKUP, HLOOKUP, INDEX, MATCH, CHOOSE, OFFSET, INDIRECT</li>
+                        <li><strong>Information:</strong> ISBLANK, ISNUMBER, ISTEXT, ISERROR, ISNA, TYPE, CELL</li>
+                    </ul>
+
+                    <div class="alert alert-info">
+                        <strong>Roadmap:</strong> IronCalc is actively developing toward 300+ functions by v1.0, including advanced features like pivot tables, dynamic arrays, and enhanced internationalization.
+                    </div>
+                </section>
+
+                <!-- Performance -->
+                <section id="performance">
+                    <h2>Performance</h2>
+                    <p>IronCalc is optimized for high-performance calculations in browser environments:</p>
+
+                    <ul>
+                        <li><strong>Scale:</strong> Handles 100,000+ cells with sub-second calculation times</li>
+                        <li><strong>Memory:</strong> Efficient WebAssembly memory management with <5MB bundle size</li>
+                        <li><strong>Speed:</strong> Native-speed calculations through Rust compilation to WebAssembly</li>
+                        <li><strong>Dependency Tracking:</strong> Intelligent recalculation of only affected cells</li>
+                        <li><strong>Parallel Processing:</strong> Multi-threaded calculations where possible</li>
+                    </ul>
+
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Performance example: Large dataset calculations
+const startTime = performance.now();
+
+const result = await plugin.evaluateFormula('SUMPRODUCT(A1:A10000, B1:B10000)', {
+  // Large dataset with 10,000 rows
+  ...largeDataset
+});
+
+const endTime = performance.now();
+console.log(`Calculation completed in ${endTime - startTime}ms`);
+// Typical result: ~200-500ms for 10,000 rows</code></pre>
+                    </div>
+                </section>
+
+                <!-- Integration -->
+                <section id="integration">
+                    <h2>DataPrism Integration</h2>
+                    <p>The IronCalc plugin integrates seamlessly with DataPrism's analytical capabilities:</p>
+
+                    <h3>Data Pipeline Integration</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Use formulas in data processing workflows
+const workflow = {
+  steps: [
+    {
+      type: 'load',
+      source: 'sales_data.csv'
+    },
+    {
+      type: 'formula',
+      operations: [
+        { column: 'profit_margin', formula: '(revenue - cost) / revenue * 100' },
+        { column: 'category', formula: 'IF(profit_margin > 20, "High", IF(profit_margin > 10, "Medium", "Low"))' },
+        { column: 'total_score', formula: 'SUMPRODUCT(quality_score, weight_factor)' }
+      ]
+    },
+    {
+      type: 'aggregate',
+      formula: 'AVERAGE(profit_margin)'
+    }
+  ]
+};</code></pre>
+                    </div>
+
+                    <h3>Spreadsheet Import/Export</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Import Excel file with formulas
+const workbook = await plugin.importXLSX(file);
+
+// Process data with existing formulas
+const results = await plugin.calculate(workbook);
+
+// Export back to Excel with calculated values
+const exportFile = await plugin.exportXLSX(results);</code></pre>
+                    </div>
+
+                    <h3>Custom Function Registration</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Register custom business logic functions
+await plugin.registerCustomFunction('BUSINESS_DAYS_BETWEEN', {
+  parameters: ['start_date', 'end_date', 'holidays?'],
+  execute: (startDate, endDate, holidays = []) => {
+    // Custom business days calculation
+    return calculateBusinessDays(startDate, endDate, holidays);
+  }
+});
+
+// Use in formulas
+const result = await plugin.evaluateFormula(
+  'BUSINESS_DAYS_BETWEEN("2024-01-01", "2024-01-31", holidays)'
+);</code></pre>
+                    </div>
+                </section>
+
+                <!-- Roadmap -->
+                <section id="roadmap">
+                    <h2>Roadmap</h2>
+                    <p>IronCalc is actively developing toward a 1.0 release with enhanced Excel compatibility:</p>
+
+                    <h3>Current Version (0.1.0)</h3>
+                    <ul>
+                        <li>✅ 180+ Excel-compatible functions</li>
+                        <li>✅ XLSX import/export support</li>
+                        <li>✅ WebAssembly performance optimization</li>
+                        <li>✅ Basic DataPrism integration</li>
+                    </ul>
+
+                    <h3>Upcoming Features (v1.0)</h3>
+                    <ul>
+                        <li>🚧 300+ Excel functions (target)</li>
+                        <li>🚧 Dynamic arrays support</li>
+                        <li>🚧 Pivot tables functionality</li>
+                        <li>🚧 Enhanced internationalization</li>
+                        <li>🚧 Merged cells support</li>
+                        <li>🚧 Name manager (named ranges)</li>
+                        <li>🚧 Chart objects in XLSX</li>
+                    </ul>
+
+                    <div class="alert alert-warning">
+                        <strong>Development Status:</strong> IronCalc is under active development. Some advanced Excel features may have limitations. We recommend version pinning until the stable 1.0 release.
+                    </div>
+
+                    <h3>Contributing</h3>
+                    <p>IronCalc is open source and welcomes contributions:</p>
+                    <ul>
+                        <li><strong>IronCalc Repository:</strong> <a href="https://github.com/ironcalc/IronCalc">github.com/ironcalc/IronCalc</a></li>
+                        <li><strong>Official Website:</strong> <a href="https://www.ironcalc.com">ironcalc.com</a></li>
+                        <li><strong>DataPrism Integration:</strong> <a href="https://github.com/srnarasim/dataprism-plugins">github.com/srnarasim/dataprism-plugins</a></li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

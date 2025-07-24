@@ -29,6 +29,10 @@ export const PLUGIN_REGISTRY = {
       import("./plugins/integration/csv-importer.js").then(
         (m) => new m.CSVImporterPlugin(),
       ),
+    "langgraph-integration": () =>
+      import("./plugins/integration/langgraph-integration.js").then(
+        (m) => new m.LangGraphIntegrationPlugin(),
+      ),
   },
   processing: {
     "semantic-clustering": () =>
@@ -89,6 +93,14 @@ export const PLUGIN_METADATA = {
       "Live dashboard of FPS, memory, DuckDB query timings & WebAssembly heap usage",
     version: "1.0.0",
     tags: ["monitoring", "performance", "metrics", "dashboard"],
+  },
+  "langgraph-integration": {
+    name: "LangGraph Integration",
+    category: "integration",
+    description:
+      "Graph-based agentic analytics workflows using LangGraph for multi-agent coordination and intelligent data analysis",
+    version: "1.0.0",
+    tags: ["workflow", "langgraph", "agents", "llm", "analytics", "orchestration"],
   },
 } as const;
 

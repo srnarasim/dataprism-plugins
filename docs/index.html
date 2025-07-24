@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataPrism Plugins - Extensible Analytics Framework</title>
+    <meta name="description" content="DataPrism Plugins provides a secure, performant plugin architecture for extensible analytics capabilities including formula engines, visualizations, LLM integration, and workflow orchestration.">
+    <meta name="keywords" content="DataPrism, plugins, analytics, WebAssembly, JavaScript, TypeScript, data processing, visualization, LLM, workflow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://srnarasim.github.io/dataprism-plugins/">
+    <meta property="og:title" content="DataPrism Plugins - Extensible Analytics Framework">
+    <meta property="og:description" content="Secure, performant plugin architecture for extensible analytics capabilities">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://srnarasim.github.io/dataprism-plugins/">
+    <meta property="twitter:title" content="DataPrism Plugins - Extensible Analytics Framework">
+    <meta property="twitter:description" content="Secure, performant plugin architecture for extensible analytics capabilities">
+    
+    <style>
+        :root {
+            --primary-color: #1976d2;
+            --primary-dark: #1565c0;
+            --secondary-color: #2196f3;
+            --accent-color: #03dac6;
+            --background-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--surface-color);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .logo::before {
+            content: "🔌";
+            margin-right: 0.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .nav a:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: var(--accent-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 4rem 0;
+            background: var(--surface-color);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background: var(--surface-color);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        /* Plugins Section */
+        .plugins {
+            padding: 4rem 0;
+            background: var(--background-color);
+        }
+        
+        .plugins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        .plugin-card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .plugin-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .plugin-header {
+            padding: 1.5rem 2rem 1rem;
+            background: linear-gradient(135deg, #f5f5f5, #ffffff);
+        }
+        
+        .plugin-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .plugin-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .plugin-category {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .plugin-body {
+            padding: 0 2rem 2rem;
+        }
+        
+        .plugin-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .plugin-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tag {
+            background: var(--background-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .plugin-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        /* CDN Section */
+        .cdn-section {
+            padding: 4rem 0;
+            background: var(--surface-color);
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+        }
+        
+        .code-block pre {
+            margin: 0;
+        }
+        
+        .copy-btn {
+            position: relative;
+            float: right;
+            margin-top: -2.5rem;
+            margin-right: 0.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--text-primary);
+            color: white;
+            padding: 3rem 0 2rem;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            opacity: 1;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .plugins-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        /* Stats */
+        .stats {
+            background: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">DataPrism Plugins</a>
+                <nav>
+                    <ul class="nav">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#plugins">Plugins</a></li>
+                        <li><a href="#cdn">CDN</a></li>
+                        <li><a href="https://github.com/srnarasim/dataprism-plugins">GitHub</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>DataPrism Plugins</h1>
+            <p>Extensible analytics framework with secure, performant plugins for data processing, visualization, LLM integration, and workflow orchestration</p>
+            <div class="cta-buttons">
+                <a href="#cdn" class="btn btn-primary">Get Started with CDN</a>
+                <a href="https://github.com/srnarasim/dataprism-plugins" class="btn btn-secondary">View on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat">
+                    <span class="stat-number">6</span>
+                    <span class="stat-label">Official Plugins</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">180+</span>
+                    <span class="stat-label">Formula Functions</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number"><2MB</span>
+                    <span class="stat-label">CDN Bundle Size</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">4</span>
+                    <span class="stat-label">Plugin Categories</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Framework Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Security First</h3>
+                    <p>Comprehensive security model with sandboxing, permissions, and resource quotas. All plugins run in isolated environments with controlled access to system resources.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3>High Performance</h3>
+                    <p>WebAssembly-powered core with optimized memory management. Sub-second query performance for datasets with millions of rows.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔧</span>
+                    <h3>Extensible Architecture</h3>
+                    <p>Plugin-based architecture supporting data processors, visualizations, integrations, and utilities. Easy to extend with custom functionality.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📦</span>
+                    <h3>CDN Ready</h3>
+                    <p>Multiple bundle formats (ES, UMD, IIFE) optimized for CDN distribution. Framework-only or complete bundles available.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h3>Hot Reloading</h3>
+                    <p>Development-friendly plugin loading with hot reload support. Build and test plugins without restarting your application.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3>Analytics Ready</h3>
+                    <p>Built-in support for DuckDB, Arrow format, and analytical operations. Optimized for data science and business intelligence workflows.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Plugins Section -->
+    <section class="plugins" id="plugins">
+        <div class="container">
+            <h2 class="section-title">Available Plugins</h2>
+            <div class="plugins-grid">
+                
+                <!-- IronCalc Formula Engine Plugin -->
+                <div class="plugin-card">
+                    <div class="plugin-header">
+                        <span class="plugin-icon">📊</span>
+                        <h3 class="plugin-name">IronCalc Formula Engine</h3>
+                        <span class="plugin-category">processing</span>
+                    </div>
+                    <div class="plugin-body">
+                        <p class="plugin-description">
+                            Excel-compatible formula engine powered by IronCalc WebAssembly. Supports 180+ functions with sub-second calculation performance for complex spreadsheet operations.
+                        </p>
+                        <div class="plugin-tags">
+                            <span class="tag">formula</span>
+                            <span class="tag">excel</span>
+                            <span class="tag">spreadsheet</span>
+                            <span class="tag">wasm</span>
+                            <span class="tag">calculation</span>
+                        </div>
+                        <div class="plugin-actions">
+                            <a href="https://github.com/ironcalc/IronCalc" class="btn btn-primary btn-small">IronCalc Docs</a>
+                            <a href="#cdn" class="btn btn-secondary btn-small">Try It</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LangGraph Integration Plugin -->
+                <div class="plugin-card">
+                    <div class="plugin-header">
+                        <span class="plugin-icon">🔗</span>
+                        <h3 class="plugin-name">LangGraph Integration</h3>
+                        <span class="plugin-category">integration</span>
+                    </div>
+                    <div class="plugin-body">
+                        <p class="plugin-description">
+                            Graph-based agentic analytics workflows using LangGraph for multi-agent coordination. Create intelligent data analysis pipelines with conditional branching and parallel execution.
+                        </p>
+                        <div class="plugin-tags">
+                            <span class="tag">workflow</span>
+                            <span class="tag">langgraph</span>
+                            <span class="tag">agents</span>
+                            <span class="tag">llm</span>
+                            <span class="tag">orchestration</span>
+                        </div>
+                        <div class="plugin-actions">
+                            <a href="docs/plugins/langgraph-integration.html" class="btn btn-primary btn-small">Documentation</a>
+                            <a href="packages/out-of-box/examples/langgraph-workflow.html" class="btn btn-secondary btn-small">Demo</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CSV Importer Plugin -->
+                <div class="plugin-card">
+                    <div class="plugin-header">
+                        <span class="plugin-icon">📄</span>
+                        <h3 class="plugin-name">CSV Importer</h3>
+                        <span class="plugin-category">integration</span>
+                    </div>
+                    <div class="plugin-body">
+                        <p class="plugin-description">
+                            High-performance CSV/TSV import with streaming support and automatic type inference. Handle large files efficiently with progress tracking and error recovery.
+                        </p>
+                        <div class="plugin-tags">
+                            <span class="tag">import</span>
+                            <span class="tag">csv</span>
+                            <span class="tag">streaming</span>
+                            <span class="tag">type-inference</span>
+                        </div>
+                        <div class="plugin-actions">
+                            <a href="#cdn" class="btn btn-primary btn-small">Try It</a>
+                            <a href="https://github.com/srnarasim/dataprism-plugins" class="btn btn-secondary btn-small">Source</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observable Charts Plugin -->
+                <div class="plugin-card">
+                    <div class="plugin-header">
+                        <span class="plugin-icon">📈</span>
+                        <h3 class="plugin-name">Observable Charts</h3>
+                        <span class="plugin-category">visualization</span>
+                    </div>
+                    <div class="plugin-body">
+                        <p class="plugin-description">
+                            Interactive charts and visualizations built with Observable Framework and D3. High-performance reactive charts with smooth animations and responsive design.
+                        </p>
+                        <div class="plugin-tags">
+                            <span class="tag">charts</span>
+                            <span class="tag">d3</span>
+                            <span class="tag">interactive</span>
+                            <span class="tag">responsive</span>
+                        </div>
+                        <div class="plugin-actions">
+                            <a href="https://observablehq.com/@observablehq/plot" class="btn btn-primary btn-small">Observable Plot</a>
+                            <a href="#cdn" class="btn btn-secondary btn-small">Try It</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Semantic Clustering Plugin -->
+                <div class="plugin-card">
+                    <div class="plugin-header">
+                        <span class="plugin-icon">🧠</span>
+                        <h3 class="plugin-name">Semantic Clustering</h3>
+                        <span class="plugin-category">processing</span>
+                    </div>
+                    <div class="plugin-body">
+                        <p class="plugin-description">
+                            ML-powered data clustering with K-means/DBSCAN algorithms. Generate embeddings, perform dimensionality reduction, and create interactive cluster visualizations.
+                        </p>
+                        <div class="plugin-tags">
+                            <span class="tag">clustering</span>
+                            <span class="tag">ml</span>
+                            <span class="tag">embeddings</span>
+                            <span class="tag">visualization</span>
+                        </div>
+                        <div class="plugin-actions">
+                            <a href="#cdn" class="btn btn-primary btn-small">Try It</a>
+                            <a href="https://github.com/srnarasim/dataprism-plugins" class="btn btn-secondary btn-small">Source</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Monitor Plugin -->
+                <div class="plugin-card">
+                    <div class="plugin-header">
+                        <span class="plugin-icon">📊</span>
+                        <h3 class="plugin-name">Performance Monitor</h3>
+                        <span class="plugin-category">utility</span>
+                    </div>
+                    <div class="plugin-body">
+                        <p class="plugin-description">
+                            Real-time system monitoring with FPS tracking, memory usage, DuckDB query performance, and WebAssembly heap analysis. Essential for production deployments.
+                        </p>
+                        <div class="plugin-tags">
+                            <span class="tag">monitoring</span>
+                            <span class="tag">performance</span>
+                            <span class="tag">metrics</span>
+                            <span class="tag">dashboard</span>
+                        </div>
+                        <div class="plugin-actions">
+                            <a href="#cdn" class="btn btn-primary btn-small">Try It</a>
+                            <a href="https://github.com/srnarasim/dataprism-plugins" class="btn btn-secondary btn-small">Source</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CDN Section -->
+    <section class="cdn-section" id="cdn">
+        <div class="container">
+            <h2 class="section-title">CDN Usage</h2>
+            
+            <h3>Quick Start</h3>
+            <p>Get started immediately with our CDN bundles. Choose between the complete bundle (all plugins) or framework-only bundle.</p>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>&lt;!-- Complete Bundle: Framework + All Plugins --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@dataprism/plugins@latest/dist/bundles/dataprism-plugins.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  // All plugins are immediately available
+  const manager = await DataPrismPlugins.createPluginManager();
+  
+  // Load IronCalc formula engine
+  const formulaPlugin = await DataPrismPlugins.createProcessingPlugin('ironcalc-formula');
+  await manager.loadPlugin(formulaPlugin);
+  
+  // Load LangGraph workflow orchestration
+  const workflowPlugin = await DataPrismPlugins.createIntegrationPlugin('langgraph-integration');
+  await manager.loadPlugin(workflowPlugin);
+  
+  // Execute formula
+  const result = await manager.executePlugin('ironcalc-formula', {
+    formula: 'SUM(A1:A10)',
+    data: { A1: 10, A2: 20, A3: 30, A4: 40, A5: 50, A6: 60, A7: 70, A8: 80, A9: 90, A10: 100 }
+  });
+  
+  console.log('Formula result:', result); // 550
+&lt;/script&gt;</code></pre>
+            </div>
+
+            <h3>Framework Only</h3>
+            <p>For custom implementations, use the lightweight framework bundle and load plugins separately.</p>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>&lt;!-- Framework Only --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@dataprism/plugins@latest/dist/framework-bundles/dataprism-framework.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  const manager = new DataPrismFramework.PluginManager();
+  await manager.initialize();
+  
+  // Load specific plugins as needed
+  // Plugins must be loaded separately when using framework-only bundle
+&lt;/script&gt;</code></pre>
+            </div>
+
+            <h3>NPM Installation</h3>
+            <p>For Node.js projects and build systems, install via NPM:</p>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code># Install the complete package
+npm install @dataprism/plugins
+
+# Or install specific plugins
+npm install @dataprism/plugins/ironcalc-formula
+npm install @dataprism/plugins/langgraph-integration</code></pre>
+            </div>
+
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code>// TypeScript/ES6 imports
+import { PluginManager } from '@dataprism/plugins';
+import { IronCalcFormulaPlugin } from '@dataprism/plugins/ironcalc-formula';
+import { LangGraphIntegrationPlugin } from '@dataprism/plugins/langgraph-integration';
+
+// Initialize plugins
+const manager = new PluginManager();
+await manager.loadPlugin(new IronCalcFormulaPlugin());
+await manager.loadPlugin(new LangGraphIntegrationPlugin());
+
+// Create and execute a workflow
+const workflow = {
+  id: 'excel-analysis',
+  name: 'Excel-style Data Analysis',
+  nodes: [
+    {
+      id: 'calculate',
+      type: 'agent',
+      agentId: 'formula-agent',
+      configuration: { formulas: ['SUM(A:A)', 'AVERAGE(B:B)', 'MAX(C:C)'] }
+    },
+    {
+      id: 'summarize',
+      type: 'agent', 
+      agentId: 'insight-agent',
+      configuration: { includeCharts: true }
+    }
+  ],
+  edges: [{ from: 'calculate', to: 'summarize' }],
+  entryPoint: 'calculate'
+};
+
+const workflowResult = await manager.executePlugin('langgraph-integration', {
+  operation: 'execute-workflow',
+  workflowId: 'excel-analysis',
+  input: { dataset: myData }
+});</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/srnarasim/dataprism-plugins">GitHub</a>
+                <a href="https://www.npmjs.com/package/@dataprism/plugins">NPM</a>
+                <a href="docs/plugins/langgraph-integration.html">Documentation</a>
+            </div>
+            <p>&copy; 2024 DataPrism Plugins. MIT License.</p>
+        </div>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling.querySelector('code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#4caf50';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = 'var(--primary-color)';
+                }, 2000);
+            });
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
