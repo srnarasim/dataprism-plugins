@@ -19,6 +19,9 @@ describe("Plugin Registry", () => {
       "csv-importer",
       "semantic-clustering",
       "performance-monitor",
+      "ironcalc-formula",
+      "langgraph-integration",
+      "mcp-integration",
     ];
 
     const availablePlugins = getAvailablePlugins();
@@ -34,7 +37,10 @@ describe("Plugin Registry", () => {
 
     expect(visualizationPlugins).toContain("observable-charts");
     expect(integrationPlugins).toContain("csv-importer");
+    expect(integrationPlugins).toContain("langgraph-integration");
+    expect(integrationPlugins).toContain("mcp-integration");
     expect(processingPlugins).toContain("semantic-clustering");
+    expect(processingPlugins).toContain("ironcalc-formula");
     expect(utilityPlugins).toContain("performance-monitor");
   });
 
@@ -110,6 +116,9 @@ describe("Plugin Registry", () => {
       expect(results["csv-importer"]).toBe(true);
       expect(results["semantic-clustering"]).toBe(true);
       expect(results["performance-monitor"]).toBe(true);
+      expect(results["ironcalc-formula"]).toBe(true);
+      expect(results["langgraph-integration"]).toBe(true);
+      expect(results["mcp-integration"]).toBe(true);
     });
   });
 });

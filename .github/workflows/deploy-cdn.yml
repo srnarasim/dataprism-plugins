@@ -92,7 +92,7 @@ jobs:
                 "umd": "./dataprism-plugins.umd.js",
                 "es": "./dataprism-plugins.es.js",
                 "description": "Complete bundle with framework and all plugins",
-                "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor", "ironcalc-formula", "langgraph-integration"]
+                "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor", "ironcalc-formula", "langgraph-integration", "mcp-integration"]
               },
               "framework": {
                 "iife": "./dataprism-framework.min.js",
@@ -139,6 +139,12 @@ jobs:
                 "description": "Graph-based agentic analytics workflows",
                 "size": "~150KB",
                 "dependencies": ["@langchain/core", "@langchain/langgraph"]
+              },
+              "mcp-integration": {
+                "path": "./plugins/mcp-integration/index.js",
+                "description": "Model Context Protocol integration for tool interoperability",
+                "size": "~500KB",
+                "dependencies": ["@modelcontextprotocol/sdk"]
               }
             },
             "workers": {
@@ -190,7 +196,7 @@ jobs:
               <div class="container">
                   <div class="header">
                       <h1>DataPrism Plugins CDN</h1>
-                      <p>Extensible plugin framework with 6 official plugins for data processing, visualization, formula engines, and workflow orchestration</p>
+                      <p>Extensible plugin framework with 7 official plugins for data processing, visualization, formula engines, workflow orchestration, and tool interoperability</p>
                   </div>
                   
                   <div class="section">
@@ -274,6 +280,12 @@ jobs:
                               <div class="deps">Dependencies: @langchain/core, @langchain/langgraph</div>
                               <p>Graph-based agentic analytics workflows using LangGraph for multi-agent coordination.</p>
                           </div>
+                          <div class="plugin">
+                              <h3>🔗 MCP Integration</h3>
+                              <div class="size">~500KB</div>
+                              <div class="deps">Dependencies: @modelcontextprotocol/sdk</div>
+                              <p>Model Context Protocol integration enabling bidirectional tool interoperability with external MCP servers.</p>
+                          </div>
                       </div>
                   </div>
                   
@@ -293,6 +305,7 @@ jobs:
                               <a href="./plugins/performance-monitor/index.js">Performance Monitor</a>
                               <a href="./plugins/ironcalc-formula/index.js">IronCalc Formula Engine</a>
                               <a href="./plugins/langgraph-integration/index.js">LangGraph Integration</a>
+                              <a href="./plugins/mcp-integration/index.js">MCP Integration</a>
                           </div>
                           <div class="file">
                               <h3>Web Workers</h3>

@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Integration Plugin - DataPrism Plugins</title>
+    <meta name="description" content="Model Context Protocol integration enabling bidirectional tool interoperability with external MCP servers and exposing DataPrism capabilities to the MCP ecosystem">
+    
+    <style>
+        :root {
+            --primary-color: #1976d2;
+            --primary-dark: #1565c0;
+            --secondary-color: #2196f3;
+            --accent-color: #03dac6;
+            --background-color: #fafafa;
+            --surface-color: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --code-bg: #2d3748;
+            --code-text: #e2e8f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background-color);
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--surface-color);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .logo::before {
+            content: "🔗";
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .breadcrumb {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* Main Content */
+        .main {
+            background: var(--surface-color);
+            margin: 2rem 0;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .plugin-hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .plugin-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .plugin-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .plugin-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .toc {
+            background: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .toc h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 1rem;
+        }
+        
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        
+        .toc a:hover {
+            color: var(--primary-color);
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        h4 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        ul, ol {
+            margin-bottom: 1rem;
+            margin-left: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+        }
+        
+        .code-block {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .code-block pre {
+            margin: 0;
+        }
+        
+        .language-label {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin: 0 0 0.5rem;
+        }
+        
+        .feature-card p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+        
+        .alert-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #1565c0;
+        }
+        
+        .alert-warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            color: #ef6c00;
+        }
+        
+        .workflow-diagram {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .node {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            margin: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .arrow {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin: 0 0.5rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        @media (max-width: 768px) {
+            .plugin-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .plugin-meta {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="logo">MCP Integration</a>
+                <div class="breadcrumb">
+                    <a href="../index.html">DataPrism Plugins</a> / <a href="#" style="color: var(--text-secondary);">MCP Integration</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Plugin Hero -->
+            <section class="plugin-hero">
+                <h1>MCP Integration Plugin</h1>
+                <p>Model Context Protocol integration enabling bidirectional tool interoperability with external MCP servers and exposing DataPrism capabilities to the MCP ecosystem</p>
+                <div class="plugin-meta">
+                    <div class="meta-item">Version: 1.0.0</div>
+                    <div class="meta-item">Category: Integration</div>
+                    <div class="meta-item">Bundle Size: ~500KB</div>
+                    <div class="meta-item">License: MIT</div>
+                </div>
+            </section>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Table of Contents -->
+                <div class="toc">
+                    <h3>Table of Contents</h3>
+                    <ul>
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#quick-start">Quick Start</a></li>
+                        <li><a href="#mcp-client">MCP Client Usage</a></li>
+                        <li><a href="#mcp-server">MCP Server Setup</a></li>
+                        <li><a href="#workflow-integration">Workflow Integration</a></li>
+                        <li><a href="#configuration">Configuration</a></li>
+                        <li><a href="#api-reference">API Reference</a></li>
+                        <li><a href="#examples">Examples</a></li>
+                        <li><a href="#troubleshooting">Troubleshooting</a></li>
+                    </ul>
+                </div>
+
+                <!-- Overview -->
+                <section id="overview">
+                    <h2>Overview</h2>
+                    <p>The MCP Integration Plugin enables DataPrism to participate fully in the Model Context Protocol (MCP) ecosystem. MCP is an emerging standard for tool interoperability across AI applications, allowing different systems to share tools and capabilities seamlessly.</p>
+                    
+                    <p>This plugin provides both client and server capabilities:</p>
+                    <ul>
+                        <li><strong>MCP Client:</strong> Connect to external MCP servers and use their tools in DataPrism workflows</li>
+                        <li><strong>MCP Server:</strong> Expose DataPrism's analytical capabilities to other MCP-compatible applications</li>
+                        <li><strong>Workflow Integration:</strong> Use MCP tools as nodes in LangGraph workflows</li>
+                        <li><strong>Security:</strong> Sandboxed execution with JWT/OAuth2 authentication</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <strong>New in v1.0:</strong> Full bidirectional MCP support, LangGraph integration, caching, and comprehensive security features.
+                    </div>
+                </section>
+
+                <!-- Features -->
+                <section id="features">
+                    <h2>Features</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🔗 MCP Client</h4>
+                            <p>Connect to external MCP servers, discover available tools, and invoke them with full authentication support.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🖥️ MCP Server</h4>
+                            <p>Expose DataPrism's DuckDB queries, CSV import, and analysis capabilities as MCP-compatible endpoints.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔄 Workflow Integration</h4>
+                            <p>Use MCP tools as nodes in LangGraph workflows for complex multi-step analytical processes.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>⚡ Performance Optimized</h4>
+                            <p>Intelligent caching, connection pooling, and parallel execution with <2s tool invocation latency.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔐 Security First</h4>
+                            <p>JWT/OAuth2 authentication, sandboxed execution, and comprehensive audit logging.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📊 Real-time Monitoring</h4>
+                            <p>Track connection health, tool performance, cache hit rates, and error metrics.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Start -->
+                <section id="quick-start">
+                    <h2>Quick Start</h2>
+                    
+                    <h3>CDN Usage</h3>
+                    <div class="code-block">
+                        <div class="language-label">HTML</div>
+                        <pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/@dataprism/plugins@latest/dist/bundles/dataprism-plugins.min.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  // Initialize plugin manager
+  const manager = await DataPrismPlugins.createPluginManager();
+  
+  // Load MCP integration plugin
+  const mcpPlugin = await DataPrismPlugins.createIntegrationPlugin('mcp-integration');
+  await manager.loadPlugin(mcpPlugin);
+  
+  // Connect to an MCP server
+  const connection = await mcpPlugin.connectToMCPServer('https://api.example.com/mcp', {
+    type: 'bearer',
+    token: 'your-api-token'
+  });
+  
+  // Discover available tools
+  const tools = await mcpPlugin.discoverTools(connection);
+  console.log('Available tools:', tools.map(t => t.name));
+  
+  // Invoke a tool
+  const result = await mcpPlugin.invokeTool(connection, 'data-transform', {
+    data: myData,
+    operation: 'clean'
+  });
+  
+  console.log('Tool result:', result.content);
+&lt;/script&gt;</code></pre>
+                    </div>
+
+                    <h3>NPM Installation</h3>
+                    <div class="code-block">
+                        <div class="language-label">bash</div>
+                        <pre><code>npm install @dataprism/plugins</code></pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="language-label">TypeScript</div>
+                        <pre><code>import { PluginManager } from '@dataprism/plugins';
+import { MCPIntegrationPlugin } from '@dataprism/plugins/mcp-integration';
+
+const manager = new PluginManager();
+const plugin = new MCPIntegrationPlugin();
+await manager.loadPlugin(plugin);
+
+// Connect to MCP server
+const connection = await plugin.connectToMCPServer('https://api.example.com/mcp');</code></pre>
+                    </div>
+                </section>
+
+                <!-- MCP Client Usage -->
+                <section id="mcp-client">
+                    <h2>MCP Client Usage</h2>
+                    <p>Use DataPrism as an MCP client to connect to external servers and use their tools.</p>
+
+                    <h3>Server Connection</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Connect with bearer token authentication
+const connection = await plugin.connectToMCPServer('https://api.nlp-tools.com/mcp', {
+  type: 'bearer',
+  token: process.env.NLP_TOOLS_TOKEN
+});
+
+// Connect with basic authentication
+const connection2 = await plugin.connectToMCPServer('https://api.data-services.com/mcp', {
+  type: 'basic',
+  username: 'your-username',
+  password: 'your-password'
+});
+
+// Connect with OAuth2
+const connection3 = await plugin.connectToMCPServer('https://api.enterprise.com/mcp', {
+  type: 'oauth2',
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret'
+});</code></pre>
+                    </div>
+
+                    <h3>Tool Discovery and Invocation</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Discover all available tools
+const tools = await plugin.discoverTools(connection);
+
+// Filter tools by category
+const nlpTools = tools.filter(tool => tool.metadata.category === 'nlp');
+const dataTools = tools.filter(tool => tool.metadata.tags.includes('data-processing'));
+
+// Invoke a specific tool
+const entityResult = await plugin.invokeTool(connection, 'extract-entities', {
+  text: "Apple Inc. is headquartered in Cupertino, California.",
+  confidence: 0.8,
+  languages: ['en']
+});
+
+console.log('Extracted entities:', entityResult.content.entities);
+
+// Invoke with error handling
+try {
+  const result = await plugin.invokeTool(connection, 'sentiment-analysis', {
+    text: userInput,
+    model: 'advanced'
+  });
+  
+  if (result.isError) {
+    console.error('Tool returned error:', result.content.error);
+  } else {
+    console.log('Sentiment score:', result.content.sentiment);
+  }
+} catch (error) {
+  console.error('Tool invocation failed:', error.message);
+}</code></pre>
+                    </div>
+
+                    <h3>Batch Operations</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Process multiple items with the same tool
+const texts = ["Review 1", "Review 2", "Review 3"];
+const sentimentPromises = texts.map(text => 
+  plugin.invokeTool(connection, 'sentiment-analysis', { text })
+);
+
+const results = await Promise.all(sentimentPromises);
+const sentiments = results.map(r => r.content.sentiment);</code></pre>
+                    </div>
+                </section>
+
+                <!-- MCP Server Setup -->
+                <section id="mcp-server">
+                    <h2>MCP Server Setup</h2>
+                    <p>Expose DataPrism's capabilities to other MCP-compatible applications.</p>
+
+                    <h3>Server Configuration</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Start MCP server with custom configuration
+const server = await plugin.startMCPServer({
+  port: 8080,
+  authRequired: true,
+  allowedOrigins: ['https://app.example.com'],
+  rateLimit: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+  }
+});
+
+console.log('MCP server started on port 8080');</code></pre>
+                    </div>
+
+                    <h3>Exposing DataPrism Tools</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Expose DuckDB query capability
+await plugin.exposeTool('duckdb-query', 'executeQuery', {
+  description: 'Execute SQL query against DataPrism DuckDB engine',
+  parameters: {
+    type: 'object',
+    properties: {
+      sql: {
+        type: 'string',
+        description: 'SQL query to execute'
+      },
+      parameters: {
+        type: 'object',
+        description: 'Named parameters for the query'
+      },
+      limit: {
+        type: 'number',
+        description: 'Maximum number of rows to return',
+        default: 1000
+      }
+    },
+    required: ['sql']
+  }
+});
+
+// Expose CSV import functionality
+await plugin.exposeTool('csv-importer', 'import', {
+  description: 'Import CSV data into DataPrism',
+  parameters: {
+    type: 'object',
+    properties: {
+      data: {
+        type: 'string',
+        description: 'CSV data content'
+      },
+      options: {
+        type: 'object',
+        description: 'Import configuration options',
+        properties: {
+          delimiter: { type: 'string', default: ',' },
+          hasHeader: { type: 'boolean', default: true },
+          encoding: { type: 'string', default: 'utf-8' }
+        }
+      }
+    },
+    required: ['data']
+  }
+});
+
+// Expose clustering analysis
+await plugin.exposeTool('semantic-clustering', 'cluster', {
+  description: 'Perform K-means clustering on dataset',
+  parameters: {
+    type: 'object',
+    properties: {
+      data: {
+        type: 'array',
+        description: 'Array of data points to cluster'
+      },
+      k: {
+        type: 'number',
+        description: 'Number of clusters'
+      },
+      features: {
+        type: 'array',
+        description: 'Feature columns to use for clustering'
+      }
+    },
+    required: ['data', 'k']
+  }
+});</code></pre>
+                    </div>
+
+                    <h3>Custom Tool Registration</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Register a custom business logic tool
+await plugin.exposeTool('custom-analytics', 'calculateKPIs', {
+  description: 'Calculate business KPIs from sales data',
+  parameters: {
+    type: 'object',
+    properties: {
+      salesData: {
+        type: 'array',
+        description: 'Sales transaction data'
+      },
+      timeframe: {
+        type: 'string',
+        enum: ['daily', 'weekly', 'monthly', 'quarterly'],
+        description: 'KPI calculation timeframe'
+      },
+      metrics: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: ['revenue', 'conversion', 'retention', 'churn']
+        },
+        description: 'KPIs to calculate'
+      }
+    },
+    required: ['salesData', 'timeframe', 'metrics']
+  }
+});</code></pre>
+                    </div>
+                </section>
+
+                <!-- Workflow Integration -->
+                <section id="workflow-integration">
+                    <h2>Workflow Integration</h2>
+                    <p>Integrate MCP tools seamlessly into LangGraph workflows for complex analytical processes.</p>
+
+                    <h3>MCP Tool Nodes</h3>
+                    <div class="workflow-diagram">
+                        <div class="node">Data Load</div>
+                        <span class="arrow">→</span>
+                        <div class="node">MCP: Entity Extract</div>
+                        <span class="arrow">→</span>
+                        <div class="node">MCP: Data Enrich</div>
+                        <span class="arrow">→</span>
+                        <div class="node">Analysis</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Create workflow with MCP tool nodes
+const workflow = {
+  id: 'mcp-enhanced-analysis',
+  name: 'MCP-Enhanced Data Analysis',
+  description: 'Analytical workflow using external MCP tools',
+  nodes: [
+    {
+      id: 'load-data',
+      type: 'native-plugin',
+      plugin: 'csv-importer',
+      operation: 'import'
+    },
+    {
+      id: 'extract-entities',
+      type: 'mcp-tool',
+      server: 'https://api.nlp-services.com/mcp',
+      tool: 'extract-entities',
+      parameters: {
+        text: '{{load-data.output.text_column}}',
+        confidence: 0.8
+      },
+      timeout: 10000,
+      retryPolicy: {
+        maxRetries: 3,
+        backoffMs: 1000
+      }
+    },
+    {
+      id: 'enrich-data',
+      type: 'mcp-tool',
+      server: 'https://api.data-enrichment.com/mcp',
+      tool: 'enrich-records',
+      parameters: {
+        records: '{{load-data.output}}',
+        entities: '{{extract-entities.output.entities}}',
+        enrichmentType: 'full'
+      }
+    },
+    {
+      id: 'analyze',
+      type: 'native-plugin',
+      plugin: 'semantic-clustering',
+      operation: 'cluster',
+      parameters: {
+        data: '{{enrich-data.output}}',
+        k: 5
+      }
+    }
+  ],
+  edges: [
+    { from: 'load-data', to: 'extract-entities' },
+    { from: 'extract-entities', to: 'enrich-data' },
+    { from: 'enrich-data', to: 'analyze' }
+  ],
+  entryPoint: 'load-data'
+};
+
+// Execute the workflow
+const result = await plugin.executeWorkflow('mcp-enhanced-analysis', {
+  csvData: userUploadedData
+});
+
+console.log('Workflow completed:', result.status);
+console.log('Final analysis:', result.output);</code></pre>
+                    </div>
+
+                    <h3>Conditional MCP Tool Usage</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Workflow with conditional MCP tool execution
+const conditionalWorkflow = {
+  id: 'smart-analysis',
+  name: 'Smart Analysis with Conditional MCP',
+  nodes: [
+    {
+      id: 'analyze-content',
+      type: 'condition',
+      condition: (input) => input.contentType === 'text',
+      trueBranch: {
+        id: 'text-processing',
+        type: 'mcp-tool',
+        server: 'https://api.nlp-tools.com/mcp',
+        tool: 'advanced-text-analysis',
+        parameters: {
+          text: '{{input.content}}',
+          features: ['sentiment', 'entities', 'topics']
+        }
+      },
+      falseBranch: {
+        id: 'data-processing',
+        type: 'native-plugin',
+        plugin: 'data-processor',
+        operation: 'analyze'
+      }
+    }
+  ]
+};</code></pre>
+                    </div>
+
+                    <h3>Parallel MCP Tool Execution</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Execute multiple MCP tools in parallel
+const parallelWorkflow = {
+  id: 'parallel-mcp-analysis',
+  name: 'Parallel MCP Tool Analysis',
+  nodes: [
+    {
+      id: 'parallel-analysis',
+      type: 'parallel',
+      branches: [
+        {
+          id: 'sentiment-branch',
+          type: 'mcp-tool',
+          server: 'https://api.sentiment.com/mcp',
+          tool: 'analyze-sentiment',
+          parameters: { text: '{{input.text}}' }
+        },
+        {
+          id: 'entity-branch',
+          type: 'mcp-tool',
+          server: 'https://api.entities.com/mcp',
+          tool: 'extract-entities',
+          parameters: { text: '{{input.text}}' }
+        },
+        {
+          id: 'topic-branch',
+          type: 'mcp-tool',
+          server: 'https://api.topics.com/mcp',
+          tool: 'extract-topics',
+          parameters: { text: '{{input.text}}' }
+        }
+      ]
+    },
+    {
+      id: 'combine-results',
+      type: 'native-plugin',
+      plugin: 'data-processor',
+      operation: 'merge',
+      parameters: {
+        sentiment: '{{sentiment-branch.output}}',
+        entities: '{{entity-branch.output}}',
+        topics: '{{topic-branch.output}}'
+      }
+    }
+  ],
+  edges: [
+    { from: 'parallel-analysis', to: 'combine-results' }
+  ]
+};</code></pre>
+                    </div>
+                </section>
+
+                <!-- Configuration -->
+                <section id="configuration">
+                    <h2>Configuration</h2>
+                    <p>Comprehensive configuration options for optimal performance and security.</p>
+
+                    <h3>Plugin Configuration</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Configure the MCP plugin
+await plugin.configure({
+  // Connection settings
+  maxConnections: 50,              // Maximum concurrent MCP server connections
+  connectionTimeout: 10000,        // Connection timeout in milliseconds
+  
+  // Caching settings
+  toolCacheTTL: 600000,           // Tool result cache TTL (10 minutes)
+  enableCaching: true,             // Enable/disable result caching
+  
+  // Server settings
+  enableMCPServer: true,           // Enable MCP server functionality
+  serverPort: 8080,                // MCP server port
+  authRequired: true,              // Require authentication for server access
+  
+  // Performance settings
+  toolTimeout: 30000,              // Individual tool execution timeout
+  batchSize: 10,                   // Maximum batch size for parallel operations
+  
+  // Security settings
+  allowedServers: [                // Whitelist of allowed MCP servers
+    'https://api.trusted-nlp.com/mcp',
+    'https://api.partner-data.com/mcp'
+  ],
+  
+  // Monitoring settings
+  enableMetrics: true,             // Enable performance metrics collection
+  metricsInterval: 60000,          // Metrics collection interval
+  
+  // Retry settings
+  defaultRetryPolicy: {
+    maxRetries: 3,
+    backoffMs: 1000,
+    backoffMultiplier: 2
+  }
+});</code></pre>
+                    </div>
+
+                    <h3>Environment Variables</h3>
+                    <div class="code-block">
+                        <div class="language-label">bash</div>
+                        <pre><code># MCP server configuration
+MCP_SERVER_ENABLED=true
+MCP_SERVER_PORT=8080
+MCP_SERVER_AUTH_REQUIRED=true
+
+# Security configuration
+MCP_ALLOWED_SERVERS=https://api.trusted.com/mcp,https://api.partner.com/mcp
+MCP_AUTH_SECRET=your-jwt-secret
+
+# Performance configuration
+MCP_MAX_CONNECTIONS=50
+MCP_TOOL_TIMEOUT=30000
+MCP_CACHE_TTL=600000
+
+# Monitoring configuration
+MCP_ENABLE_METRICS=true
+MCP_METRICS_INTERVAL=60000</code></pre>
+                    </div>
+                </section>
+
+                <!-- API Reference -->
+                <section id="api-reference">
+                    <h2>API Reference</h2>
+                    
+                    <h3>Core Methods</h3>
+                    <div class="code-block">
+                        <div class="language-label">TypeScript</div>
+                        <pre><code>interface MCPIntegrationPlugin {
+  // Connection management
+  connectToMCPServer(serverUrl: string, auth?: MCPAuth): Promise&lt;MCPConnection&gt;;
+  disconnectFromServer(connection: MCPConnection): Promise&lt;void&gt;;
+  
+  // Tool operations
+  discoverTools(connection: MCPConnection): Promise&lt;MCPTool[]&gt;;
+  invokeTool(connection: MCPConnection, toolName: string, params: any): Promise&lt;MCPResult&gt;;
+  
+  // Server operations
+  startMCPServer(config?: MCPServerConfig): Promise&lt;MCPServerInstance&gt;;
+  stopMCPServer(): Promise&lt;void&gt;;
+  exposeTool(pluginName: string, methodName: string, schema: MCPSchema): Promise&lt;void&gt;;
+  
+  // Workflow integration
+  createWorkflow(definition: WorkflowDefinition): Promise&lt;MCPWorkflowInstance&gt;;
+  executeWorkflow(workflowId: string, input: any, options?: WorkflowExecutionOptions): Promise&lt;WorkflowResult&gt;;
+  
+  // Monitoring and metrics
+  getConnectionStatus(): Promise&lt;ConnectionStatus[]&gt;;
+  getPerformanceMetrics(): Promise&lt;MCPMetrics&gt;;
+  getToolUsageStats(): Promise&lt;ToolUsageStats&gt;;
+}</code></pre>
+                    </div>
+
+                    <h3>Type Definitions</h3>
+                    <div class="code-block">
+                        <div class="language-label">TypeScript</div>
+                        <pre><code>interface MCPAuth {
+  type: 'bearer' | 'basic' | 'oauth2';
+  token?: string;
+  username?: string;
+  password?: string;
+  clientId?: string;
+  clientSecret?: string;
+}
+
+interface MCPConnection {
+  serverUrl: string;
+  authenticated: boolean;
+  connected: boolean;
+  capabilities: string[];
+  lastUsed: Date;
+  request(method: string, params: any): Promise&lt;any&gt;;
+}
+
+interface MCPTool {
+  name: string;
+  description: string;
+  schema: any;
+  connection: string;
+  metadata: {
+    version: string;
+    category: string;
+    tags: string[];
+  };
+}
+
+interface MCPResult {
+  content: any;
+  isError: boolean;
+  metadata: {
+    toolName: string;
+    serverUrl: string;
+    executionTime: number;
+    timestamp: Date;
+  };
+}
+
+interface MCPWorkflowNode extends WorkflowNode {
+  type: 'mcp-tool';
+  server: string;
+  tool: string;
+  parameters: any;
+  timeout?: number;
+  retryPolicy?: {
+    maxRetries: number;
+    backoffMs: number;
+  };
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Examples -->
+                <section id="examples">
+                    <h2>Examples</h2>
+                    
+                    <h3>Complete Integration Example</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Complete example: NLP-enhanced data analysis
+async function runNLPEnhancedAnalysis() {
+  // 1. Initialize MCP plugin
+  const manager = await DataPrismPlugins.createPluginManager();
+  const mcpPlugin = await DataPrismPlugins.createIntegrationPlugin('mcp-integration');
+  await manager.loadPlugin(mcpPlugin);
+  
+  // 2. Connect to NLP service
+  const nlpConnection = await mcpPlugin.connectToMCPServer(
+    'https://api.nlp-service.com/mcp',
+    { type: 'bearer', token: process.env.NLP_TOKEN }
+  );
+  
+  // 3. Discover available NLP tools
+  const nlpTools = await mcpPlugin.discoverTools(nlpConnection);
+  console.log('Available NLP tools:', nlpTools.map(t => t.name));
+  
+  // 4. Load customer feedback data
+  const csvPlugin = await DataPrismPlugins.createIntegrationPlugin('csv-importer');
+  await manager.loadPlugin(csvPlugin);
+  
+  const feedbackData = await csvPlugin.import({
+    data: customerFeedbackCSV,
+    options: { hasHeader: true }
+  });
+  
+  // 5. Analyze sentiment for each feedback
+  const sentimentResults = [];
+  for (const row of feedbackData.rows) {
+    const result = await mcpPlugin.invokeTool(nlpConnection, 'analyze-sentiment', {
+      text: row.feedback_text,
+      language: 'en'
+    });
+    
+    sentimentResults.push({
+      id: row.id,
+      sentiment: result.content.sentiment,
+      score: result.content.score
+    });
+  }
+  
+  // 6. Create enhanced dataset
+  const enhancedData = feedbackData.rows.map(row => {
+    const sentiment = sentimentResults.find(s => s.id === row.id);
+    return {
+      ...row,
+      sentiment: sentiment.sentiment,
+      sentiment_score: sentiment.score
+    };
+  });
+  
+  // 7. Perform clustering analysis
+  const clusteringPlugin = await DataPrismPlugins.createProcessingPlugin('semantic-clustering');
+  await manager.loadPlugin(clusteringPlugin);
+  
+  const clusters = await clusteringPlugin.cluster({
+    data: enhancedData,
+    features: ['sentiment_score', 'rating'],
+    k: 3
+  });
+  
+  console.log('Customer feedback clusters:', clusters);
+  
+  return {
+    originalData: feedbackData,
+    sentimentAnalysis: sentimentResults,
+    clusters: clusters
+  };
+}
+
+// Run the analysis
+runNLPEnhancedAnalysis()
+  .then(results => console.log('Analysis complete:', results))
+  .catch(error => console.error('Analysis failed:', error));</code></pre>
+                    </div>
+
+                    <h3>Multi-Server Integration</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Example: Using multiple MCP servers for comprehensive analysis
+async function runMultiServerAnalysis(textData) {
+  const connections = {};
+  
+  // Connect to multiple specialized services
+  connections.nlp = await mcpPlugin.connectToMCPServer(
+    'https://api.nlp-tools.com/mcp',
+    { type: 'bearer', token: process.env.NLP_TOKEN }
+  );
+  
+  connections.translation = await mcpPlugin.connectToMCPServer(
+    'https://api.translate.com/mcp',
+    { type: 'bearer', token: process.env.TRANSLATE_TOKEN }
+  );
+  
+  connections.enrichment = await mcpPlugin.connectToMCPServer(
+    'https://api.data-enrichment.com/mcp',
+    { type: 'oauth2', clientId: process.env.ENRICH_CLIENT_ID, clientSecret: process.env.ENRICH_SECRET }
+  );
+  
+  // Process data through multiple services
+  const results = {};
+  
+  // 1. Detect language
+  results.language = await mcpPlugin.invokeTool(connections.nlp, 'detect-language', {
+    text: textData
+  });
+  
+  // 2. Translate if needed
+  if (results.language.content.language !== 'en') {
+    results.translation = await mcpPlugin.invokeTool(connections.translation, 'translate', {
+      text: textData,
+      from: results.language.content.language,
+      to: 'en'
+    });
+    textData = results.translation.content.translatedText;
+  }
+  
+  // 3. Extract entities
+  results.entities = await mcpPlugin.invokeTool(connections.nlp, 'extract-entities', {
+    text: textData,
+    types: ['PERSON', 'ORGANIZATION', 'LOCATION']
+  });
+  
+  // 4. Enrich entities with additional data
+  for (const entity of results.entities.content.entities) {
+    const enriched = await mcpPlugin.invokeTool(connections.enrichment, 'enrich-entity', {
+      entity: entity.text,
+      type: entity.type
+    });
+    entity.enrichment = enriched.content;
+  }
+  
+  return results;
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Troubleshooting -->
+                <section id="troubleshooting">
+                    <h2>Troubleshooting</h2>
+                    
+                    <h3>Common Issues</h3>
+                    
+                    <h4>Connection Timeouts</h4>
+                    <div class="alert alert-warning">
+                        <strong>Issue:</strong> MCP server connections timing out or failing to establish.
+                    </div>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Increase connection timeout
+await plugin.configure({
+  connectionTimeout: 30000, // 30 seconds
+  toolTimeout: 60000       // 60 seconds for tool execution
+});
+
+// Add retry logic for connections
+async function robustConnect(serverUrl, auth, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await plugin.connectToMCPServer(serverUrl, auth);
+    } catch (error) {
+      console.warn(`Connection attempt ${i + 1} failed:`, error.message);
+      if (i === retries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+}</code></pre>
+                    </div>
+
+                    <h4>Authentication Failures</h4>
+                    <div class="alert alert-warning">
+                        <strong>Issue:</strong> Authentication errors when connecting to MCP servers.
+                    </div>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Verify authentication configuration
+const auth = {
+  type: 'bearer',
+  token: process.env.MCP_TOKEN
+};
+
+// Check token validity before connecting
+if (!auth.token) {
+  throw new Error('MCP_TOKEN environment variable not set');
+}
+
+// Test connection with authentication
+try {
+  const connection = await plugin.connectToMCPServer(serverUrl, auth);
+  console.log('Authentication successful');
+} catch (error) {
+  if (error.message.includes('401') || error.message.includes('403')) {
+    console.error('Authentication failed. Check your credentials.');
+  }
+  throw error;
+}</code></pre>
+                    </div>
+
+                    <h4>Tool Discovery Issues</h4>
+                    <div class="alert alert-warning">
+                        <strong>Issue:</strong> No tools discovered or tools not working as expected.
+                    </div>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Debug tool discovery
+const connection = await plugin.connectToMCPServer(serverUrl, auth);
+
+try {
+  const tools = await plugin.discoverTools(connection);
+  console.log(`Discovered ${tools.length} tools:`);
+  
+  tools.forEach(tool => {
+    console.log(`- ${tool.name}: ${tool.description}`);
+    console.log(`  Schema:`, JSON.stringify(tool.schema, null, 2));
+  });
+  
+  if (tools.length === 0) {
+    console.warn('No tools discovered. Check server compatibility.');
+  }
+} catch (error) {
+  console.error('Tool discovery failed:', error.message);
+}</code></pre>
+                    </div>
+
+                    <h4>Performance Issues</h4>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Monitor and optimize performance
+const metrics = await plugin.getPerformanceMetrics();
+console.log('Performance metrics:', {
+  connectionsActive: metrics.connectionsActive,
+  averageLatency: metrics.averageLatency,
+  cacheHitRate: metrics.cacheHitRate,
+  errorRate: metrics.errorRate
+});
+
+// Optimize configuration based on metrics
+if (metrics.averageLatency > 5000) {
+  console.warn('High latency detected. Consider:');
+  console.warn('- Increasing cache TTL');
+  console.warn('- Reducing batch sizes');
+  console.warn('- Adding connection pooling');
+}
+
+if (metrics.cacheHitRate < 0.3) {
+  console.warn('Low cache hit rate. Consider:');
+  console.warn('- Increasing cache TTL');
+  console.warn('- Reviewing tool usage patterns');
+}</code></pre>
+                    </div>
+
+                    <h3>Debug Mode</h3>
+                    <div class="code-block">
+                        <div class="language-label">JavaScript</div>
+                        <pre><code>// Enable comprehensive debugging
+await plugin.configure({
+  debug: true,
+  logLevel: 'debug',
+  enableRequestLogging: true,
+  enableResponseLogging: true
+});
+
+// View detailed connection information
+const connections = await plugin.getConnectionStatus();
+connections.forEach(conn => {
+  console.log(`Connection: ${conn.serverUrl}`);
+  console.log(`  Status: ${conn.connected ? 'Connected' : 'Disconnected'}`);
+  console.log(`  Last used: ${conn.lastUsed}`);
+  console.log(`  Tools: ${conn.toolCount}`);
+  console.log(`  Latency: ${conn.averageLatency}ms`);
+});</code></pre>
+                    </div>
+
+                    <h3>Support Resources</h3>
+                    <ul>
+                        <li><strong>Documentation:</strong> <a href="https://github.com/srnarasim/dataprism-plugins">GitHub Repository</a></li>
+                        <li><strong>MCP Specification:</strong> <a href="https://spec.modelcontextprotocol.io/">Model Context Protocol Spec</a></li>
+                        <li><strong>Community:</strong> <a href="https://discord.gg/dataprism">DataPrism Discord</a></li>
+                        <li><strong>Issues:</strong> <a href="https://github.com/srnarasim/dataprism-plugins/issues">GitHub Issues</a></li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

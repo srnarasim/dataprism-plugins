@@ -33,6 +33,10 @@ export const PLUGIN_REGISTRY = {
       import("./plugins/integration/langgraph-integration.js").then(
         (m) => new m.LangGraphIntegrationPlugin(),
       ),
+    "mcp-integration": () =>
+      import("./plugins/integration/mcp-integration.js").then(
+        (m) => new m.MCPIntegrationPlugin(),
+      ),
   },
   processing: {
     "semantic-clustering": () =>
@@ -101,6 +105,14 @@ export const PLUGIN_METADATA = {
       "Graph-based agentic analytics workflows using LangGraph for multi-agent coordination and intelligent data analysis",
     version: "1.0.0",
     tags: ["workflow", "langgraph", "agents", "llm", "analytics", "orchestration"],
+  },
+  "mcp-integration": {
+    name: "MCP Integration",
+    category: "integration", 
+    description:
+      "Model Context Protocol integration enabling bidirectional tool interoperability with external MCP servers and exposing DataPrism capabilities to the MCP ecosystem",
+    version: "1.0.0",
+    tags: ["mcp", "tools", "interoperability", "client", "server", "ecosystem"],
   },
 } as const;
 

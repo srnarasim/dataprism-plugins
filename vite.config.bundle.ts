@@ -21,8 +21,8 @@ export default defineConfig({
  * DataPrism Plugins - CDN Bundle
  * Complete plugin framework with all dependencies bundled
  * 
- * Includes: Framework, CSV Importer, Charts, Clustering, Performance Monitor, IronCalc Formula Engine, LangGraph Integration
- * Dependencies: d3, papaparse, ml-kmeans, plotly.js, @langchain/core, @langchain/langgraph
+ * Includes: Framework, CSV Importer, Charts, Clustering, Performance Monitor, IronCalc Formula Engine, LangGraph Integration, MCP Integration
+ * Dependencies: d3, papaparse, ml-kmeans, plotly.js, @langchain/core, @langchain/langgraph, @modelcontextprotocol/sdk
  */`,
       },
     },
