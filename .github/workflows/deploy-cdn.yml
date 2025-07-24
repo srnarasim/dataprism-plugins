@@ -92,7 +92,7 @@ jobs:
                 "umd": "./dataprism-plugins.umd.js",
                 "es": "./dataprism-plugins.es.js",
                 "description": "Complete bundle with framework and all plugins",
-                "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor"]
+                "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor", "ironcalc-formula", "langgraph-integration"]
               },
               "framework": {
                 "iife": "./dataprism-framework.min.js",
@@ -127,6 +127,18 @@ jobs:
                 "description": "Monitor analytics performance",
                 "size": "~20KB",
                 "dependencies": []
+              },
+              "ironcalc-formula": {
+                "path": "./plugins/ironcalc-formula/index.js",
+                "description": "Excel-compatible formula engine with 180+ functions",
+                "size": "~5MB",
+                "dependencies": ["ironcalc-wasm"]
+              },
+              "langgraph-integration": {
+                "path": "./plugins/langgraph-integration/index.js",
+                "description": "Graph-based agentic analytics workflows",
+                "size": "~150KB",
+                "dependencies": ["@langchain/core", "@langchain/langgraph"]
               }
             },
             "workers": {
@@ -178,7 +190,7 @@ jobs:
               <div class="container">
                   <div class="header">
                       <h1>DataPrism Plugins CDN</h1>
-                      <p>Extensible plugin framework with official plugins for data processing and visualization</p>
+                      <p>Extensible plugin framework with 6 official plugins for data processing, visualization, formula engines, and workflow orchestration</p>
                   </div>
                   
                   <div class="section">
@@ -250,6 +262,18 @@ jobs:
                               <div class="deps">No external dependencies</div>
                               <p>Monitor query performance, memory usage, and analytics execution metrics.</p>
                           </div>
+                          <div class="plugin">
+                              <h3>📊 IronCalc Formula Engine</h3>
+                              <div class="size">~5MB</div>
+                              <div class="deps">Dependencies: ironcalc-wasm</div>
+                              <p>Excel-compatible formula engine with 180+ functions powered by IronCalc WebAssembly.</p>
+                          </div>
+                          <div class="plugin">
+                              <h3>🔗 LangGraph Integration</h3>
+                              <div class="size">~150KB</div>
+                              <div class="deps">Dependencies: @langchain/core, @langchain/langgraph</div>
+                              <p>Graph-based agentic analytics workflows using LangGraph for multi-agent coordination.</p>
+                          </div>
                       </div>
                   </div>
                   
@@ -267,6 +291,8 @@ jobs:
                               <a href="./plugins/visualization/index.js">Observable Charts</a>
                               <a href="./plugins/semantic-clustering/index.js">Semantic Clustering</a>
                               <a href="./plugins/performance-monitor/index.js">Performance Monitor</a>
+                              <a href="./plugins/ironcalc-formula/index.js">IronCalc Formula Engine</a>
+                              <a href="./plugins/langgraph-integration/index.js">LangGraph Integration</a>
                           </div>
                           <div class="file">
                               <h3>Web Workers</h3>
