@@ -4,6 +4,7 @@ export * from "./data-processor.js";
 export * from "./visualization.js";
 export * from "./integration.js";
 export * from "./utility.js";
+export * from "./workflow.js";
 
 // Re-export commonly used types for convenience
 export type {
@@ -43,3 +44,12 @@ export type {
   SystemStatus,
   HealthStatus,
 } from "./utility.js";
+
+export type {
+  IWorkflowPlugin,
+  WorkflowDefinition,
+  AnalyticsAgent,
+  WorkflowResult,
+  WorkflowState,
+  WorkflowStatus,
+} from "./workflow.js";

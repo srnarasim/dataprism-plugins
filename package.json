@@ -13,7 +13,8 @@
     "./visualization": "./dist/plugins/visualization/index.js",
     "./llm-providers": "./dist/plugins/llm-providers/index.js",
     "./semantic-clustering": "./dist/plugins/semantic-clustering/index.js",
-    "./performance-monitor": "./dist/plugins/performance-monitor/index.js"
+    "./performance-monitor": "./dist/plugins/performance-monitor/index.js",
+    "./langgraph-integration": "./dist/plugins/langgraph-integration/index.js"
   },
   "scripts": {
     "build": "npm run build:framework && npm run build:plugins && npm run build:bundles",
@@ -37,6 +38,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@langchain/core": "^0.1.63",
+    "@langchain/langgraph": "^0.1.9",
     "d3": "^7.8.0",
     "ml-kmeans": "^6.0.0",
     "papaparse": "^5.4.1",
@@ -50,10 +53,10 @@
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.50.0",
     "jsdom": "^26.1.0",
+    "terser": "^5.24.0",
     "typescript": "^5.2.0",
     "vite": "^5.4.8",
-    "vitest": "^1.6.0",
-    "terser": "^5.24.0"
+    "vitest": "^1.6.0"
   },
   "peerDependencies": {
     "@dataprism/core": "^1.0.0"

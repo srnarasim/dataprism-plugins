@@ -6,3 +6,6 @@ export type {
   SchemaPreview,
   ColumnPreview,
 } from "./csv-importer.js";
+
+export { LangGraphIntegrationPlugin } from "./langgraph-integration.js";
+export { manifest as LangGraphIntegrationManifest } from "./langgraph-integration.js";
