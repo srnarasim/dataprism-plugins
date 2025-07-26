@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parquet HTTPFS Plugin - DataPrism Plugins</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .nav {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+        }
+        
+        .nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .nav a {
+            color: #495057;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+        
+        .nav a:hover {
+            background: #e9ecef;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            color: #495057;
+            margin-top: 0;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .example-section {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .provider-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .provider-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .provider-card.aws {
+            border-color: #ff9900;
+        }
+        
+        .provider-card.cloudflare {
+            border-color: #f38020;
+        }
+        
+        .provider-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        
+        .badge.new {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge.beta {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .metric {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .toc h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .toc ul {
+            margin-bottom: 0;
+        }
+        
+        .toc a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .nav ul {
+                flex-direction: column;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+            
+            .provider-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .performance-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Parquet HTTPFS Plugin <span class="badge new">New</span></h1>
+        <p>Stream and query Parquet files directly from AWS S3 and CloudFlare R2 using DuckDB's HTTPFS extension</p>
+    </div>
+
+    <nav class="nav">
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#providers">Cloud Providers</a></li>
+            <li><a href="#quick-start">Quick Start</a></li>
+            <li><a href="#authentication">Authentication</a></li>
+            <li><a href="#examples">Examples</a></li>
+            <li><a href="#performance">Performance</a></li>
+            <li><a href="#api">API Reference</a></li>
+            <li><a href="../">← Back to Plugins</a></li>
+        </ul>
+    </nav>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#overview">Plugin Overview</a></li>
+            <li><a href="#features">Key Features</a></li>
+            <li><a href="#providers">Supported Cloud Providers</a></li>
+            <li><a href="#quick-start">Quick Start Guide</a></li>
+            <li><a href="#authentication">Authentication Setup</a></li>
+            <li><a href="#examples">Usage Examples</a></li>
+            <li><a href="#performance">Performance Metrics</a></li>
+            <li><a href="#api">API Documentation</a></li>
+        </ul>
+    </div>
+
+    <section id="overview">
+        <h2>Overview</h2>
+        <p>The Parquet HTTPFS Plugin enables DataPrism to stream and query Parquet files directly from cloud storage without downloading entire files. Built on DuckDB's HTTPFS extension, it provides efficient, memory-optimized access to large datasets stored on AWS S3 and CloudFlare R2.</p>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3>🚀 High Performance</h3>
+                <p>Stream large Parquet files with minimal memory footprint. Query response times under 2 seconds for typical analytics operations.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🔐 Secure Authentication</h3>
+                <p>Full support for AWS Signature v4 and CloudFlare R2 authentication with secure credential management.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>🌐 Multi-Cloud Support</h3>
+                <p>Seamlessly work with both AWS S3 and CloudFlare R2, including hybrid queries across providers.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>📊 SQL Analytics</h3>
+                <p>Full SQL query capabilities with JOINs, aggregations, and complex analytics directly on cloud data.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <h2>Key Features</h2>
+        <ul>
+            <li><strong>Streaming Access:</strong> Load and query Parquet files without downloading to local storage</li>
+            <li><strong>Memory Efficient:</strong> Plugin overhead under 200MB with support for files up to 10GB</li>
+            <li><strong>Cloud Native:</strong> Native support for AWS S3 and CloudFlare R2 storage</li>
+            <li><strong>Schema Introspection:</strong> Automatic schema detection and validation</li>
+            <li><strong>Progress Tracking:</strong> Real-time loading progress and status reporting</li>
+            <li><strong>Error Handling:</strong> Comprehensive error management with retry logic</li>
+            <li><strong>CORS Compliant:</strong> Proper CORS handling for browser-based applications</li>
+            <li><strong>Performance Optimized:</strong> Query pushdown and columnar processing optimization</li>
+            <li><strong>Partitioned Dataset Support:</strong> Load and query multi-file datasets with automatic partition discovery</li>
+            <li><strong>Partition Pruning:</strong> Query optimization with automatic partition filtering</li>
+        </ul>
+    </section>
+
+    <section id="providers">
+        <h2>Supported Cloud Providers</h2>
+        
+        <div class="provider-grid">
+            <div class="provider-card aws">
+                <h3>
+                    AWS S3
+                    <span class="badge">Production Ready</span>
+                </h3>
+                <ul>
+                    <li>AWS Signature v4 authentication</li>
+                    <li>STS temporary credentials support</li>
+                    <li>All AWS regions supported</li>
+                    <li>IAM role-based access</li>
+                    <li>VPC endpoint compatibility</li>
+                </ul>
+                
+                <div class="code-block">
+                    <pre>// AWS S3 Authentication
+const awsCredentials = {
+  accessKeyId: 'AKIA...',
+  secretAccessKey: 'secret...',
+  region: 'us-east-1'
+};</pre>
+                </div>
+            </div>
+            
+            <div class="provider-card cloudflare">
+                <h3>
+                    CloudFlare R2
+                    <span class="badge new">New</span>
+                </h3>
+                <ul>
+                    <li>S3-compatible API authentication</li>
+                    <li>EU jurisdiction compliance (GDPR)</li>
+                    <li>FedRAMP moderate support</li>
+                    <li>Custom domain integration</li>
+                    <li>Worker proxy support</li>
+                    <li>Global edge network optimization</li>
+                </ul>
+                
+                <div class="code-block">
+                    <pre>// CloudFlare R2 Authentication
+const r2Credentials = {
+  accountId: 'account-id',
+  accessKeyId: 'r2-token-id',
+  secretAccessKey: 'r2-token-secret',
+  jurisdiction: 'eu' // or 'auto', 'fedramp-moderate'
+};</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quick-start">
+        <h2>Quick Start</h2>
+        
+        <div class="example-section">
+            <h3>CDN Installation</h3>
+            
+            <div class="code-block">
+                <pre>&lt;script src="https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  // Initialize the plugin
+  const plugin = new DataPrismPlugins.ParquetHttpfsPlugin();
+  
+  // Load a public Parquet file
+  plugin.loadFile('https://bucket.s3.amazonaws.com/data.parquet')
+    .then(table =&gt; {
+      console.log('File loaded:', table.alias);
+      
+      // Query the data
+      return plugin.query('SELECT * FROM ' + table.alias + ' LIMIT 10', [table]);
+    })
+    .then(results =&gt; {
+      console.log('Query results:', results);
+    });
+&lt;/script&gt;</pre>
+            </div>
+        </div>
+
+        <div class="example-section">
+            <h3>NPM Installation</h3>
+            
+            <div class="code-block">
+                <pre>npm install @dataprism/parquet-httpfs-plugin</pre>
+            </div>
+            
+            <div class="code-block">
+                <pre>import { ParquetHttpfsPlugin } from '@dataprism/parquet-httpfs-plugin';
+
+const plugin = new ParquetHttpfsPlugin();
+await plugin.initialize(context);
+
+// Load and query
+const table = await plugin.loadFile('s3://bucket/data.parquet');
+const results = await plugin.query('SELECT COUNT(*) FROM data', [table]);</pre>
+            </div>
+        </div>
+    </section>
+
+    <section id="authentication">
+        <h2>Authentication Setup</h2>
+        
+        <h3>AWS S3 Authentication</h3>
+        <div class="code-block">
+            <pre>// Basic AWS credentials
+const awsCredentials = {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: 'us-east-1'
+};
+
+// With STS session token
+const stsCredentials = {
+  accessKeyId: 'ASIA...',
+  secretAccessKey: 'secret...',
+  sessionToken: 'session-token...',
+  region: 'us-west-2'
+};
+
+const table = await plugin.loadFile('s3://private-bucket/data.parquet', {
+  authentication: {
+    provider: 'aws',
+    credentials: awsCredentials
+  }
+});</pre>
+        </div>
+
+        <h3>CloudFlare R2 Authentication</h3>
+        <div class="code-block">
+            <pre>// Standard R2 credentials
+const r2Credentials = {
+  accountId: 'your-account-id',
+  accessKeyId: 'r2-access-key-id',
+  secretAccessKey: 'r2-secret-key',
+  jurisdiction: 'auto'
+};
+
+// EU jurisdiction for GDPR compliance
+const euR2Credentials = {
+  accountId: 'eu-account-id',
+  accessKeyId: 'eu-r2-key',
+  secretAccessKey: 'eu-r2-secret',
+  jurisdiction: 'eu'
+};
+
+// Custom domain setup
+const customDomainCredentials = {
+  accountId: 'account-id',
+  accessKeyId: 'r2-key',
+  secretAccessKey: 'r2-secret',
+  customDomain: 'data.company.com'
+};
+
+const table = await plugin.loadFile('https://data.company.com/analytics.parquet', {
+  authentication: {
+    provider: 'cloudflare',
+    credentials: customDomainCredentials
+  }
+});</pre>
+        </div>
+    </section>
+
+    <section id="examples">
+        <h2>Usage Examples</h2>
+        
+        <h3>Basic File Loading</h3>
+        <div class="code-block">
+            <pre>// Load public file
+const publicTable = await plugin.loadFile('https://public-bucket.s3.amazonaws.com/data.parquet');
+
+// Load private file with authentication
+const privateTable = await plugin.loadFile('s3://private-bucket/sales.parquet', {
+  authentication: {
+    provider: 'aws',
+    credentials: awsCredentials
+  },
+  alias: 'sales_data'
+});</pre>
+        </div>
+
+        <h3>Cross-Provider Queries</h3>
+        <div class="code-block">
+            <pre>// Load historical data from S3
+const historical = await plugin.loadFile('s3://archive/historical.parquet', {
+  alias: 'historical',
+  authentication: { provider: 'aws', credentials: awsCredentials }
+});
+
+// Load recent data from CloudFlare R2
+const recent = await plugin.loadFile('https://account.r2.cloudflarestorage.com/recent.parquet', {
+  alias: 'recent',
+  authentication: { provider: 'cloudflare', credentials: r2Credentials }
+});
+
+// Query across both providers
+const comparison = await plugin.query(`
+  SELECT 
+    'Historical' as source, 
+    COUNT(*) as records,
+    AVG(value) as avg_value
+  FROM historical
+  
+  UNION ALL
+  
+  SELECT 
+    'Recent' as source,
+    COUNT(*) as records,
+    AVG(value) as avg_value
+  FROM recent
+`, [historical, recent]);</pre>
+        </div>
+
+        <h3>Progress Monitoring</h3>
+        <div class="code-block">
+            <pre>// Set up progress callback
+plugin.onProgress((progress) => {
+  console.log(`${progress.alias}: ${progress.percentComplete}% (${progress.phase})`);
+  
+  if (progress.bytesLoaded && progress.totalBytes) {
+    const mbLoaded = (progress.bytesLoaded / 1024 / 1024).toFixed(1);
+    const mbTotal = (progress.totalBytes / 1024 / 1024).toFixed(1);
+    console.log(`Data: ${mbLoaded}MB / ${mbTotal}MB`);
+  }
+});
+
+// Load file with progress tracking
+const table = await plugin.loadFile('s3://large-bucket/big-file.parquet', {
+  alias: 'large_dataset'
+});</pre>
+        </div>
+
+        <h3>Schema Introspection</h3>
+        <div class="code-block">
+            <pre>// Get schema before loading
+const schema = await plugin.getSchema('s3://bucket/data.parquet');
+console.log('Columns:', schema.columns.length);
+console.log('File size:', schema.fileSize);
+
+// Validate file format and accessibility
+const validation = await plugin.validateFile('s3://bucket/data.parquet');
+if (!validation.isValid) {
+  console.error('Validation errors:', validation.errors);
+}</pre>
+        </div>
+
+        <h3>Partitioned Dataset Support <span class="badge new">New</span></h3>
+        <div class="code-block">
+            <pre>// Load a Hive-partitioned dataset
+const partitionedDataset = await plugin.loadPartitionedDataset('s3://data-lake/sales', {
+  authentication: { provider: 'aws', credentials: awsCredentials },
+  partitionScheme: 'hive', // or 'directory', 'custom'
+  partitionColumns: ['year', 'month', 'region'],
+  maxPartitions: 100, // Limit number of partitions to load
+  alias: 'sales_partitioned'
+});
+
+console.log(`Loaded ${partitionedDataset.totalFiles} partitions`);
+
+// Query with automatic partition pruning
+const results = await plugin.queryPartitioned(`
+  SELECT region, SUM(revenue) as total_revenue
+  FROM sales_partitioned
+  WHERE year = '2024' AND month = '01'
+  GROUP BY region
+`, partitionedDataset);
+
+console.log(`Processed ${results.bytesProcessed} bytes across partitions`);</pre>
+        </div>
+
+        <h3>Partition Discovery</h3>
+        <div class="code-block">
+            <pre>// Discover partitions automatically
+const partitions = await plugin.discoverPartitions('s3://data-warehouse/events', {
+  authentication: { provider: 'aws', credentials: awsCredentials },
+  partitionScheme: 'hive',
+  recursive: true,
+  maxDepth: 3,
+  filePattern: /\.parquet$/i
+});
+
+console.log(`Discovered ${partitions.length} partitions:`);
+partitions.forEach(partition => {
+  console.log(`- ${partition.path}`);
+  console.log(`  Values: ${JSON.stringify(partition.partitionValues)}`);
+});</pre>
+        </div>
+
+        <h3>Real-World Example: NYC Taxi Data <span class="badge new">Live Dataset</span></h3>
+        <div class="code-block">
+            <pre>// Load NYC Yellow Taxi data from CloudFlare R2
+const taxiData = await plugin.loadFile(
+  'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-01.parquet',
+  { alias: 'nyc_taxi_jan_2023' }
+);
+
+console.log(`Loaded ${taxiData.schema.columns.length} columns`);
+console.log(`File size: ${(taxiData.schema.fileSize / 1024 / 1024).toFixed(1)}MB`);
+
+// Analyze peak hours
+const peakHours = await plugin.query(`
+  SELECT 
+    EXTRACT(hour FROM tpep_pickup_datetime) as hour,
+    COUNT(*) as trip_count,
+    AVG(fare_amount) as avg_fare
+  FROM nyc_taxi_jan_2023
+  WHERE tpep_pickup_datetime IS NOT NULL
+  GROUP BY EXTRACT(hour FROM tpep_pickup_datetime)
+  ORDER BY trip_count DESC
+  LIMIT 5
+`, [taxiData]);
+
+console.log('Peak taxi hours:', peakHours.data);</pre>
+        </div>
+
+        <h3>Multi-Month NYC Taxi Analysis</h3>
+        <div class="code-block">
+            <pre>// Compare multiple months of taxi data
+const monthlyFiles = [
+  'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-01.parquet',
+  'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-06.parquet'
+];
+
+const tables = await plugin.loadMultipleFiles(monthlyFiles, {
+  alias: 'taxi_comparison'
+});
+
+// Seasonal comparison query
+const seasonalAnalysis = await plugin.query(`
+  SELECT 
+    'January' as month,
+    COUNT(*) as trips,
+    AVG(trip_distance) as avg_distance,
+    SUM(total_amount) as total_revenue
+  FROM taxi_comparison_0
+  
+  UNION ALL
+  
+  SELECT 
+    'June' as month,
+    COUNT(*) as trips,
+    AVG(trip_distance) as avg_distance,
+    SUM(total_amount) as total_revenue
+  FROM taxi_comparison_1
+  
+  ORDER BY month
+`, tables);
+
+console.log('Winter vs Summer comparison:', seasonalAnalysis.data);</pre>
+        </div>
+    </section>
+
+    <section id="performance">
+        <h2>Performance Metrics</h2>
+        
+        <div class="performance-metrics">
+            <div class="metric">
+                <div class="metric-value">&lt;2s</div>
+                <div class="metric-label">Query Response Time<br>(95th percentile)</div>
+            </div>
+            
+            <div class="metric">
+                <div class="metric-value">&lt;200MB</div>
+                <div class="metric-label">Plugin Memory Overhead</div>
+            </div>
+            
+            <div class="metric">
+                <div class="metric-value">10GB</div>
+                <div class="metric-label">Max File Size Supported</div>
+            </div>
+            
+            <div class="metric">
+                <div class="metric-value">&lt;5s</div>
+                <div class="metric-label">Plugin Initialization</div>
+            </div>
+        </div>
+
+        <div class="example-section">
+            <h3>Performance Optimization Tips</h3>
+            <ul>
+                <li><strong>Use LIMIT clauses:</strong> Reduce data transfer for exploratory queries</li>
+                <li><strong>Column selection:</strong> SELECT only needed columns to minimize bandwidth</li>
+                <li><strong>WHERE clauses:</strong> Push filters down to source for better performance</li>
+                <li><strong>Concurrent loading:</strong> Load multiple files in parallel with controlled concurrency</li>
+                <li><strong>Schema caching:</strong> Enable schema caching for frequently accessed files</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="api">
+        <h2>API Reference</h2>
+        
+        <h3>Core Methods</h3>
+        
+        <div class="code-block">
+            <pre>// Load single file
+loadFile(url: string, options?: LoadOptions): Promise&lt;TableReference&gt;
+
+// Load multiple files
+loadMultipleFiles(urls: string[], options?: LoadOptions): Promise&lt;TableReference[]&gt;
+
+// Load partitioned dataset
+loadPartitionedDataset(baseUrl: string, options?: PartitionedLoadOptions): Promise&lt;PartitionedDataset&gt;
+
+// Discover partitions
+discoverPartitions(baseUrl: string, options?: PartitionDiscoveryOptions): Promise&lt;PartitionInfo[]&gt;
+
+// Execute SQL query
+query(sql: string, tables: TableReference[]): Promise&lt;QueryResult&gt;
+
+// Execute query on partitioned dataset
+queryPartitioned(sql: string, dataset: PartitionedDataset): Promise&lt;QueryResult&gt;
+
+// Get schema information
+getSchema(url: string): Promise&lt;ParquetSchema&gt;
+
+// Validate file
+validateFile(url: string): Promise&lt;ValidationResult&gt;
+
+// Set authentication credentials
+setCredentials(provider: string, credentials: Credentials): void
+
+// Monitor progress
+onProgress(callback: ProgressCallback): void</pre>
+        </div>
+
+        <h3>Type Definitions</h3>
+        
+        <div class="code-block">
+            <pre>interface LoadOptions {
+  authentication?: {
+    provider: 'aws' | 'cloudflare' | 'custom';
+    credentials: AWSCredentials | CloudflareCredentials;
+  };
+  cors?: CORSOptions;
+  timeout?: number;
+  alias?: string;
+  streaming?: boolean;
+}
+
+interface QueryResult {
+  data: any[][];
+  columns: string[];
+  rowCount: number;
+  executionTime: number;
+  bytesProcessed: number;
+}
+
+interface ParquetSchema {
+  columns: ColumnInfo[];
+  rowCount?: number;
+  fileSize: number;
+  metadata: Record&lt;string, any&gt;;
+}
+
+interface PartitionedDataset {
+  baseUrl: string;
+  alias: string;
+  partitions: PartitionInfo[];
+  schema: ParquetSchema;
+  partitionColumns: string[];
+  totalFiles: number;
+  totalSizeBytes: number;
+  loadedAt: Date;
+}
+
+interface PartitionInfo {
+  path: string;
+  partitionValues: Record&lt;string, string&gt;;
+  fileSize: number;
+  rowCount?: number;
+  lastModified?: Date;
+}
+
+interface PartitionedLoadOptions extends LoadOptions {
+  partitionScheme?: 'hive' | 'directory' | 'custom';
+  partitionColumns?: string[];
+  maxPartitions?: number;
+  partitionFilter?: PartitionFilter;
+  unionMode?: 'union_all' | 'union_by_name';
+}</pre>
+        </div>
+    </section>
+
+    <section id="browser-support">
+        <h2>Browser Support</h2>
+        <p>The plugin supports modern browsers with WebAssembly and SharedArrayBuffer capabilities:</p>
+        <ul>
+            <li><strong>Chrome:</strong> 90+</li>
+            <li><strong>Firefox:</strong> 88+ (with SharedArrayBuffer enabled)</li>
+            <li><strong>Safari:</strong> 14+</li>
+            <li><strong>Edge:</strong> 90+</li>
+        </ul>
+        
+        <div class="example-section">
+            <h3>CORS Configuration</h3>
+            <p>Ensure your S3/R2 buckets have proper CORS policies:</p>
+            
+            <div class="code-block">
+                <pre>{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["https://your-app-domain.com"],
+      "AllowedMethods": ["GET", "HEAD"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["Content-Length", "Content-Type", "ETag"],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}</pre>
+            </div>
+        </div>
+    </section>
+
+    <footer style="margin-top: 3rem; text-align: center; color: #6c757d; border-top: 1px solid #dee2e6; padding-top: 2rem;">
+        <p>DataPrism Parquet HTTPFS Plugin v1.0.0 | <a href="https://github.com/srnarasim/dataprism-plugins">GitHub</a> | <a href="../">Plugin Documentation</a></p>
+    </footer>
+</body>
+</html>

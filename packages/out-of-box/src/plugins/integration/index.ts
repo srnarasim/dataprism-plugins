@@ -20,3 +20,21 @@ export type {
   MCPSchema,
   MCPWorkflowNode
 } from "./mcp-integration.js";
+
+export { ParquetHttpfsPlugin } from "./parquet-httpfs/index.js";
+export type {
+  IParquetHttpfsPlugin,
+  LoadOptions,
+  TableReference,
+  ParquetSchema,
+  ValidationResult,
+  QueryResult,
+  QueryPlan,
+  ProgressCallback,
+  LoadingStatus,
+  LoadingProgress,
+  ParquetHttpfsConfig,
+  AWSCredentials,
+  CloudflareCredentials,
+  R2Configuration
+} from "./parquet-httpfs/index.js";

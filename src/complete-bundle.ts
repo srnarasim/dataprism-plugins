@@ -18,7 +18,8 @@ import {
   createUtilityPlugin,
   getAvailablePlugins,
   getPluginsByCategory,
-  IronCalcFormulaPlugin
+  IronCalcFormulaPlugin,
+  ParquetHttpfsPlugin
 } from "../packages/out-of-box/src/index.js";
 
 // Main plugin loader function for CDN users
@@ -55,6 +56,7 @@ export const BUNDLE_INFO = {
 
 // Direct plugin exports for CDN usage
 export { IronCalcFormulaPlugin as IronCalcPlugin };
+export { ParquetHttpfsPlugin };
 
 // Export plugin utilities for easy access
 export const PluginUtils = {
@@ -67,5 +69,6 @@ export const PluginUtils = {
   PLUGIN_REGISTRY,
   PLUGIN_METADATA,
   BUNDLE_INFO,
-  IronCalcPlugin: IronCalcFormulaPlugin
+  IronCalcPlugin: IronCalcFormulaPlugin,
+  ParquetHttpfsPlugin
 };

@@ -1,13 +1,13 @@
 {
   "tools": [
     "Bash",
-    "Glob", 
+    "Glob",
     "Grep",
     "LS",
     "exit_plan_mode",
     "Read",
     "Edit",
-    "MultiEdit", 
+    "MultiEdit",
     "Write",
     "NotebookRead",
     "NotebookEdit",
@@ -38,7 +38,7 @@
   "workflowPatterns": {
     "featureDevelopment": [
       "1. Review or create PRP using /generate-prp",
-      "2. Plan implementation using /execute-prp", 
+      "2. Plan implementation using /execute-prp",
       "3. Create TypeScript types in src/types/",
       "4. Build React components in src/components/",
       "5. Add DataPrism integration in src/hooks/",
@@ -74,7 +74,7 @@
       "maxFunctionLength": 50,
       "preferredImportOrder": [
         "React and React-related",
-        "Third-party libraries", 
+        "Third-party libraries",
         "Internal utilities and hooks",
         "Types and interfaces",
         "Local components"
@@ -98,7 +98,7 @@
     },
     "required": [
       "Unit tests for all components",
-      "Integration tests for DataPrism interactions", 
+      "Integration tests for DataPrism interactions",
       "E2E tests for critical user workflows",
       "Error scenario testing",
       "Performance testing for data processing"
@@ -106,9 +106,22 @@
   },
   "deploymentRequirements": {
     "githubActions": {
-      "triggers": ["push to main", "pull requests"],
-      "steps": ["lint", "type-check", "test", "build", "deploy"],
-      "environments": ["development", "staging", "production"]
+      "triggers": [
+        "push to main",
+        "pull requests"
+      ],
+      "steps": [
+        "lint",
+        "type-check",
+        "test",
+        "build",
+        "deploy"
+      ],
+      "environments": [
+        "development",
+        "staging",
+        "production"
+      ]
     },
     "performance": {
       "buildTime": "< 2 minutes",
@@ -127,9 +140,25 @@
     ],
     "examples": [
       "Basic usage examples",
-      "Advanced integration patterns", 
+      "Advanced integration patterns",
       "Performance optimization examples",
       "Common troubleshooting solutions"
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm test:*)",
+      "Bash(npm install)",
+      "Bash(npx vitest:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(npm run build:plugins:*)",
+      "Bash(npm run build:bundles:*)",
+      "Bash(npx tsx:*)"
+    ],
+    "deny": []
   }
 }
