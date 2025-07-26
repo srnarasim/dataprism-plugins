@@ -1,0 +1,135 @@
+{
+  "tools": [
+    "Bash",
+    "Glob", 
+    "Grep",
+    "LS",
+    "exit_plan_mode",
+    "Read",
+    "Edit",
+    "MultiEdit", 
+    "Write",
+    "NotebookRead",
+    "NotebookEdit",
+    "WebFetch",
+    "TodoWrite",
+    "WebSearch"
+  ],
+  "slashCommands": {
+    "/generate-prp": {
+      "description": "Generate a Product Requirements Prompt for DataPrism features",
+      "path": ".claude/generate-prp.md"
+    },
+    "/execute-prp": {
+      "description": "Execute and implement a Product Requirements Prompt",
+      "path": ".claude/execute-prp.md"
+    }
+  },
+  "projectContext": {
+    "name": "DataPrism App Template",
+    "type": "React TypeScript Application",
+    "framework": "React 18+ with DataPrism Integration",
+    "buildTool": "Vite 5+",
+    "testFramework": "Vitest + Playwright",
+    "styling": "Tailwind CSS 4+",
+    "linting": "ESLint + TypeScript ESLint",
+    "formatting": "Prettier"
+  },
+  "workflowPatterns": {
+    "featureDevelopment": [
+      "1. Review or create PRP using /generate-prp",
+      "2. Plan implementation using /execute-prp", 
+      "3. Create TypeScript types in src/types/",
+      "4. Build React components in src/components/",
+      "5. Add DataPrism integration in src/hooks/",
+      "6. Write unit tests in tests/unit/",
+      "7. Add E2E tests in tests/e2e/",
+      "8. Update documentation and examples"
+    ],
+    "bugFixes": [
+      "1. Identify the issue scope and affected components",
+      "2. Write failing tests that reproduce the bug",
+      "3. Fix the issue following template patterns",
+      "4. Ensure all tests pass",
+      "5. Update documentation if needed"
+    ],
+    "codeReview": [
+      "1. Check TypeScript types are comprehensive",
+      "2. Verify DataPrism integration follows best practices",
+      "3. Ensure proper error handling and loading states",
+      "4. Validate test coverage is adequate",
+      "5. Review performance implications"
+    ]
+  },
+  "codeStandards": {
+    "naming": {
+      "components": "PascalCase (e.g., DataChart, UserDashboard)",
+      "files": "kebab-case for utilities, PascalCase for components",
+      "hooks": "camelCase starting with 'use' (e.g., useDataPrism)",
+      "types": "PascalCase with descriptive names",
+      "constants": "SCREAMING_SNAKE_CASE"
+    },
+    "structure": {
+      "maxFileLength": 300,
+      "maxFunctionLength": 50,
+      "preferredImportOrder": [
+        "React and React-related",
+        "Third-party libraries", 
+        "Internal utilities and hooks",
+        "Types and interfaces",
+        "Local components"
+      ]
+    },
+    "dataPrism": {
+      "initializationPattern": "Single engine instance via React Context",
+      "errorHandling": "Always use try-catch with user-friendly messages",
+      "loadingStates": "Implement loading indicators for all async operations",
+      "cleanup": "Proper cleanup in useEffect return functions",
+      "memoryManagement": "Monitor and limit memory usage < 2GB typical"
+    }
+  },
+  "testingRequirements": {
+    "coverage": {
+      "minimum": 80,
+      "statements": 85,
+      "branches": 80,
+      "functions": 85,
+      "lines": 85
+    },
+    "required": [
+      "Unit tests for all components",
+      "Integration tests for DataPrism interactions", 
+      "E2E tests for critical user workflows",
+      "Error scenario testing",
+      "Performance testing for data processing"
+    ]
+  },
+  "deploymentRequirements": {
+    "githubActions": {
+      "triggers": ["push to main", "pull requests"],
+      "steps": ["lint", "type-check", "test", "build", "deploy"],
+      "environments": ["development", "staging", "production"]
+    },
+    "performance": {
+      "buildTime": "< 2 minutes",
+      "bundleSize": "< 1MB gzipped",
+      "initialLoad": "< 3 seconds",
+      "dataPrismInit": "< 5 seconds"
+    }
+  },
+  "documentation": {
+    "required": [
+      "README.md with getting started guide",
+      "Component documentation with examples",
+      "DataPrism integration patterns",
+      "Testing and deployment guides",
+      "Troubleshooting section"
+    ],
+    "examples": [
+      "Basic usage examples",
+      "Advanced integration patterns", 
+      "Performance optimization examples",
+      "Common troubleshooting solutions"
+    ]
+  }
+}
