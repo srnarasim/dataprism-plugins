@@ -520,8 +520,8 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
                 // 
-                // In real scenario: const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.min.js');
-                const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.min.js');
+                // Use ES module bundle for proper import support
+                const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.es.js');
                 plugin = new ParquetHttpfsPlugin();
                 
                 updateProgress(80, 'Configuring plugin context...');
