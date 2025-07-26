@@ -157,7 +157,9 @@
       "Bash(ls:*)",
       "Bash(npm run build:plugins:*)",
       "Bash(npm run build:bundles:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)"
     ],
     "deny": []
   }
