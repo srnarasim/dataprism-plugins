@@ -15,4 +15,5 @@ export { AWSProvider } from "./providers/AWSProvider.js";
 export { CloudflareProvider } from "./providers/CloudflareProvider.js";
 
 // Default export for easy importing
+import { ParquetHttpfsPlugin } from "./ParquetHttpfsPlugin.js";
 export default ParquetHttpfsPlugin;
