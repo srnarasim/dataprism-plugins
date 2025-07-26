@@ -519,8 +519,10 @@
                 updateProgress(50, 'Initializing plugin...');
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
+                // 
                 // In real scenario: const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.min.js');
-                plugin = new MockParquetHttpfsPlugin();
+                const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.min.js');
+                plugin = new ParquetHttpfsPlugin();
                 
                 updateProgress(80, 'Configuring plugin context...');
                 await plugin.initialize(mockContext);

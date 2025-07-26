@@ -159,7 +159,10 @@
       "Bash(npm run build:bundles:*)",
       "Bash(npx tsx:*)",
       "Bash(npm install:*)",
-      "Bash(npm ci:*)"
+      "Bash(npm ci:*)",
+      "Bash(npm run build:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

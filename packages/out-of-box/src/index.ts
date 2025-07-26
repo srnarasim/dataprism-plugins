@@ -37,6 +37,10 @@ export const PLUGIN_REGISTRY = {
       import("./plugins/integration/mcp-integration.js").then(
         (m) => new m.MCPIntegrationPlugin(),
       ),
+    "parquet-httpfs": () =>
+      import("./plugins/integration/parquet-httpfs/index.js").then(
+        (m) => new m.ParquetHttpfsPlugin(),
+      ),
   },
   processing: {
     "semantic-clustering": () =>
@@ -113,6 +117,14 @@ export const PLUGIN_METADATA = {
       "Model Context Protocol integration enabling bidirectional tool interoperability with external MCP servers and exposing DataPrism capabilities to the MCP ecosystem",
     version: "1.0.0",
     tags: ["mcp", "tools", "interoperability", "client", "server", "ecosystem"],
+  },
+  "parquet-httpfs": {
+    name: "Parquet HTTPFS",
+    category: "integration",
+    description:
+      "Stream and query Parquet files directly from AWS S3, CloudFlare R2, and other cloud storage providers using DuckDB HTTPFS extension",
+    version: "1.0.0",
+    tags: ["parquet", "s3", "r2", "streaming", "duckdb", "httpfs"],
   },
 } as const;
 
