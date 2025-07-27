@@ -408,28 +408,33 @@
                 },
                 services: {
                     call: async (service, method, ...args) => {
-                        log(`🔧 Service Call: ${service}.${method}`, 'info');
-                        
-                        if (service === 'duckdb') {
-                            if (method === 'getConnection') {
-                                // Return the DuckDB manager's connection
-                                return core.duckdb?.connection || core.duckdb;
+                        try {
+                            log(`🔧 Service Call: ${service}.${method}`, 'info');
+                            
+                            if (service === 'duckdb') {
+                                if (method === 'getConnection') {
+                                    // Return the DuckDB manager's connection
+                                    return core.duckdb?.connection || core.duckdb;
+                                }
+                                if (method === 'query') {
+                                    return core.duckdb?.query(...args);
+                                }
+                                if (method === 'execute') {
+                                    return core.duckdb?.execute(...args);
+                                }
                             }
-                            if (method === 'query') {
-                                return core.duckdb?.query(...args);
+                            
+                            // Try to call through engine services if available
+                            if (core.engine?.services?.call) {
+                                return core.engine.services.call(service, method, ...args);
                             }
-                            if (method === 'execute') {
-                                return core.duckdb?.execute(...args);
-                            }
+                            
+                            // Fallback to direct service access
+                            return core.services?.call(service, method, ...args);
+                        } catch (error) {
+                            log(`❌ Service call failed: ${service}.${method} - ${error.message}`, 'error');
+                            throw error;
                         }
-                        
-                        // Try to call through engine services if available
-                        if (core.engine?.services?.call) {
-                            return core.engine.services.call(service, method, ...args);
-                        }
-                        
-                        // Fallback to direct service access
-                        return core.services?.call(service, method, ...args);
                     }
                 }
             };
