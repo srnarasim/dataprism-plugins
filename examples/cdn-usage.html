@@ -391,48 +391,73 @@
 
         // Create plugin context with real DataPrism Core services
         function createPluginContext(core) {
-            return {
-                logger: {
-                    info: (msg, ...args) => log(`ℹ️ ${msg}`, 'info'),
-                    error: (msg, ...args) => log(`❌ ${msg}`, 'error'),
-                    warn: (msg, ...args) => log(`⚠️ ${msg}`, 'warning'),
-                    debug: (msg, ...args) => log(`🐛 ${msg}`, 'debug')
-                },
-                eventBus: {
-                    publish: (event, data) => {
-                        log(`📡 Event: ${event}`, 'info');
-                        core.eventBus?.publish(event, data);
-                    },
-                    subscribe: (event, handler) => core.eventBus?.subscribe(event, handler),
-                    unsubscribe: (event, handler) => core.eventBus?.unsubscribe(event, handler)
-                },
-                services: {
-                    call: async function(service, method, ...args) {
-                        log(`🔧 Service Call: ${service}.${method}`, 'info');
-                        
-                        if (service === 'duckdb') {
-                            if (method === 'getConnection') {
-                                // Return the DuckDB manager's connection
-                                return core.duckdb?.connection || core.duckdb;
-                            }
-                            if (method === 'query') {
-                                return core.duckdb?.query(...args);
-                            }
-                            if (method === 'execute') {
-                                return core.duckdb?.execute(...args);
-                            }
-                        }
-                        
-                        // Try to call through engine services if available
-                        if (core.engine?.services?.call) {
-                            return core.engine.services.call(service, method, ...args);
-                        }
-                        
-                        // Fallback to direct service access
-                        return core.services?.call(service, method, ...args);
-                    }
+            const context = {};
+            
+            // Logger
+            context.logger = {};
+            context.logger.info = function(msg, ...args) { 
+                log(`ℹ️ ${msg}`, 'info'); 
+            };
+            context.logger.error = function(msg, ...args) { 
+                log(`❌ ${msg}`, 'error'); 
+            };
+            context.logger.warn = function(msg, ...args) { 
+                log(`⚠️ ${msg}`, 'warning'); 
+            };
+            context.logger.debug = function(msg, ...args) { 
+                log(`🐛 ${msg}`, 'debug'); 
+            };
+            
+            // Event Bus
+            context.eventBus = {};
+            context.eventBus.publish = function(event, data) {
+                log(`📡 Event: ${event}`, 'info');
+                if (core.eventBus && core.eventBus.publish) {
+                    core.eventBus.publish(event, data);
                 }
             };
+            context.eventBus.subscribe = function(event, handler) {
+                if (core.eventBus && core.eventBus.subscribe) {
+                    return core.eventBus.subscribe(event, handler);
+                }
+            };
+            context.eventBus.unsubscribe = function(event, handler) {
+                if (core.eventBus && core.eventBus.unsubscribe) {
+                    return core.eventBus.unsubscribe(event, handler);
+                }
+            };
+            
+            // Services
+            context.services = {};
+            context.services.call = async function(service, method, ...args) {
+                log(`🔧 Service Call: ${service}.${method}`, 'info');
+                
+                if (service === 'duckdb') {
+                    if (method === 'getConnection') {
+                        return core.duckdb && core.duckdb.connection ? core.duckdb.connection : core.duckdb;
+                    }
+                    if (method === 'query') {
+                        return core.duckdb ? core.duckdb.query(...args) : null;
+                    }
+                    if (method === 'execute') {
+                        return core.duckdb ? core.duckdb.execute(...args) : null;
+                    }
+                }
+                
+                // Try to call through engine services if available
+                if (core.engine && core.engine.services && core.engine.services.call) {
+                    return core.engine.services.call(service, method, ...args);
+                }
+                
+                // Fallback to direct service access
+                if (core.services && core.services.call) {
+                    return core.services.call(service, method, ...args);
+                }
+                
+                return null;
+            };
+            
+            return context;
         }
 
         function log(message, type = 'info') {
