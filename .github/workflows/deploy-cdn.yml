@@ -57,14 +57,14 @@ jobs:
         
       - name: Create GitHub Pages deployment
         run: |
-          mkdir -p cdn-dist
+          mkdir -p cdn-dist/cdn
           
           # Copy complete plugin bundles (main CDN files)
           if [ -d "dist/bundles" ]; then
-            cp -r dist/bundles/* cdn-dist/
+            cp -r dist/bundles/* cdn-dist/cdn/
           fi
           
-          # Copy framework-only bundles
+          # Copy framework-only bundles to root for compatibility
           if [ -d "dist/framework-bundles" ]; then
             cp -r dist/framework-bundles/* cdn-dist/
           fi
@@ -88,9 +88,9 @@ jobs:
             "version": "1.0.0",
             "bundles": {
               "complete": {
-                "iife": "./dataprism-plugins.min.js",
-                "umd": "./dataprism-plugins.umd.js",
-                "es": "./dataprism-plugins.es.js",
+                "iife": "./cdn/dataprism-plugins.min.js",
+                "umd": "./cdn/dataprism-plugins.umd.js",
+                "es": "./cdn/dataprism-plugins.es.js",
                 "description": "Complete bundle with framework and all plugins",
                 "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor", "ironcalc-formula", "langgraph-integration", "mcp-integration"]
               },
@@ -204,7 +204,7 @@ jobs:
                       
                       <h3>Complete Bundle (Recommended)</h3>
                       <div class="code">
-          import { PluginManager, loadDataPrismCore } from "https://srnarasim.github.io/dataprism-plugins/dataprism-plugins.min.js";
+          import { PluginManager, loadDataPrismCore } from "https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.min.js";
           
           const pluginManager = new PluginManager();
           const csvPlugin = pluginManager.getPlugin("csv-importer");
@@ -227,9 +227,9 @@ jobs:
                           <div class="file">
                               <h3>Complete Bundle <span class="badge">~232KB</span></h3>
                               <p>Framework + All plugins + Dependencies</p>
-                              <a href="./dataprism-plugins.min.js">dataprism-plugins.min.js</a>
-                              <a href="./dataprism-plugins.umd.js">dataprism-plugins.umd.js</a>
-                              <a href="./dataprism-plugins.es.js">dataprism-plugins.es.js</a>
+                              <a href="./cdn/dataprism-plugins.min.js">dataprism-plugins.min.js</a>
+                              <a href="./cdn/dataprism-plugins.umd.js">dataprism-plugins.umd.js</a>
+                              <a href="./cdn/dataprism-plugins.es.js">dataprism-plugins.es.js</a>
                           </div>
                           <div class="file">
                               <h3>Framework Only <span class="badge">~15KB</span></h3>
