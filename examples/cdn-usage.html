@@ -564,6 +564,37 @@
                     await new Promise(resolve => setTimeout(resolve, 300));
                 }
                 
+                // Create a table in DuckDB using the context services
+                try {
+                    // Create table with NYC taxi schema
+                    const createTableSql = `CREATE OR REPLACE TABLE ${alias} (
+                        VendorID INTEGER,
+                        tpep_pickup_datetime TIMESTAMP,
+                        tpep_dropoff_datetime TIMESTAMP,
+                        passenger_count DOUBLE,
+                        trip_distance DOUBLE,
+                        fare_amount DOUBLE,
+                        total_amount DOUBLE
+                    )`;
+                    
+                    await this.context.services.call('duckdb', 'query', createTableSql);
+                    
+                    // Insert sample data
+                    const insertSql = `INSERT INTO ${alias} VALUES 
+                        (1, '2023-01-01 08:30:00', '2023-01-01 08:45:00', 1, 2.5, 12.50, 15.80),
+                        (2, '2023-01-01 09:15:00', '2023-01-01 09:35:00', 2, 3.8, 18.00, 22.30),
+                        (1, '2023-01-01 18:45:00', '2023-01-01 19:05:00', 1, 1.2, 8.50, 11.20),
+                        (2, '2023-01-01 19:30:00', '2023-01-01 19:50:00', 3, 4.5, 22.00, 27.50),
+                        (1, '2023-01-01 20:15:00', '2023-01-01 20:40:00', 2, 6.2, 28.50, 34.80)`;
+                    
+                    await this.context.services.call('duckdb', 'query', insertSql);
+                    
+                    this.context.logger.info(`Created table '${alias}' with sample NYC taxi data`);
+                    
+                } catch (sqlError) {
+                    this.context.logger.warn('Failed to create DuckDB table, using in-memory simulation:', sqlError);
+                }
+                
                 // Mock schema based on NYC taxi data
                 const schema = {
                     columns: [
@@ -575,7 +606,7 @@
                         { name: 'fare_amount', type: 'DOUBLE', nullable: true },
                         { name: 'total_amount', type: 'DOUBLE', nullable: true }
                     ],
-                    rowCount: Math.floor(Math.random() * 500000) + 500000, // 500K-1M rows
+                    rowCount: 5, // Sample data count
                     fileSize: Math.floor(Math.random() * 20000000) + 40000000, // 40-60MB
                     metadata: { format: 'parquet', compression: 'snappy' }
                 };
@@ -612,7 +643,25 @@
             async query(sql, tables) {
                 this.context.logger.info(`Executing query: ${sql.substring(0, 100)}...`);
                 
-                // Simulate query execution
+                // Try to execute the query through DuckDB first
+                try {
+                    const result = await this.context.services.call('duckdb', 'query', sql);
+                    
+                    if (result && result.data) {
+                        this.context.logger.info(`Query executed via DuckDB: ${result.data.length} rows`);
+                        return {
+                            data: result.data,
+                            columns: result.columns || [],
+                            rowCount: result.data.length,
+                            executionTime: Math.floor(Math.random() * 500) + 100,
+                            bytesProcessed: Math.floor(Math.random() * 10000000) + 5000000
+                        };
+                    }
+                } catch (duckdbError) {
+                    this.context.logger.warn('DuckDB query failed, using mock results:', duckdbError);
+                }
+                
+                // Simulate query execution as fallback
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
                 // Mock results based on query type
@@ -620,28 +669,26 @@
                 let columns = [];
                 
                 if (sql.toLowerCase().includes('count(*)')) {
-                    columns = ['trip_count', 'avg_distance', 'avg_fare'];
-                    data = [[formatNumber(Math.floor(Math.random() * 100000) + 50000), 
-                             (Math.random() * 5 + 1).toFixed(2), 
-                             formatCurrency(Math.random() * 20 + 10)]];
+                    columns = ['total_trips', 'avg_distance', 'avg_fare'];
+                    data = [[5, '3.24', '$17.36']];
                 } else if (sql.toLowerCase().includes('extract(hour')) {
                     columns = ['hour', 'trip_count', 'avg_fare'];
                     data = [
-                        [18, formatNumber(45000), formatCurrency(16.50)],
-                        [19, formatNumber(42000), formatCurrency(18.20)],
-                        [17, formatNumber(38000), formatCurrency(15.80)],
-                        [8, formatNumber(35000), formatCurrency(14.90)],
-                        [9, formatNumber(32000), formatCurrency(16.10)]
+                        [8, 1, '$15.80'],
+                        [9, 1, '$22.30'],
+                        [18, 1, '$11.20'],
+                        [19, 1, '$27.50'],
+                        [20, 1, '$34.80']
                     ];
                 } else if (sql.toLowerCase().includes('union all')) {
                     columns = ['month', 'trips', 'avg_distance', 'total_revenue'];
                     data = [
-                        ['January', formatNumber(980000), '2.1', formatCurrency(15800000)],
-                        ['June', formatNumber(1150000), '2.3', formatCurrency(18600000)]
+                        ['January', '5', '3.24', '$111.10'],
+                        ['June', '5', '3.24', '$111.10']
                     ];
                 } else {
                     columns = ['result'];
-                    data = [['Query executed successfully']];
+                    data = [['Query executed successfully - using sample data']];
                 }
 
                 const result = {
@@ -652,7 +699,7 @@
                     bytesProcessed: Math.floor(Math.random() * 10000000) + 5000000
                 };
 
-                this.context.logger.info(`Query completed: ${result.rowCount} rows, ${result.executionTime}ms`);
+                this.context.logger.info(`Mock query completed: ${result.rowCount} rows, ${result.executionTime}ms`);
                 
                 return result;
             }
