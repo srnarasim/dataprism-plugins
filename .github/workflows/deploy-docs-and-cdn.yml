@@ -252,6 +252,12 @@ jobs:
                     <p>Model Context Protocol integration for AI models</p>
                     <p><strong>Usage:</strong> <code>new DataPrismPlugins.MCPIntegrationPlugin()</code></p>
                 </div>
+                
+                <div class="plugin-card">
+                    <h3>Parquet HTTPFS Plugin</h3>
+                    <p>Stream and query Parquet files from CloudFlare R2 and AWS S3</p>
+                    <p><strong>Usage:</strong> <code>new DataPrismPlugins.ParquetHttpfsPlugin()</code></p>
+                </div>
             </div>
             
             <h2>Documentation</h2>
@@ -272,6 +278,154 @@ jobs:
         # Create final deployment structure
         mkdir -p deployment
         cp -r dist/* deployment/
+        
+        # Create main site index.html that shows the documentation by default
+        cat > deployment/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>DataPrism Plugins - Extensible Analytics Framework</title>
+            <meta name="description" content="Official plugin ecosystem for DataPrism with CDN delivery, comprehensive documentation, and 8 production-ready plugins.">
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .main-container {
+                    background: white;
+                    padding: 3rem;
+                    border-radius: 12px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                    text-align: center;
+                    max-width: 600px;
+                    margin: 20px;
+                }
+                h1 {
+                    color: #1a202c;
+                    font-size: 2.5rem;
+                    margin-bottom: 1rem;
+                    font-weight: 700;
+                }
+                .subtitle {
+                    color: #4a5568;
+                    font-size: 1.2rem;
+                    margin-bottom: 2rem;
+                    line-height: 1.5;
+                }
+                .quick-links {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1rem;
+                    margin: 2rem 0;
+                }
+                .link-card {
+                    background: #f7fafc;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    text-decoration: none;
+                    color: #2d3748;
+                    transition: all 0.2s;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .link-card:hover {
+                    border-color: #667eea;
+                    background: #edf2f7;
+                    transform: translateY(-2px);
+                }
+                .link-card h3 {
+                    font-size: 1.1rem;
+                    margin-bottom: 0.5rem;
+                    color: #1a202c;
+                }
+                .link-card p {
+                    font-size: 0.9rem;
+                    color: #4a5568;
+                    margin: 0;
+                }
+                .stats {
+                    background: #f0f4f8;
+                    padding: 1.5rem;
+                    border-radius: 8px;
+                    margin: 2rem 0;
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 1rem;
+                    text-align: center;
+                }
+                .stat h4 {
+                    font-size: 1.8rem;
+                    color: #667eea;
+                    margin-bottom: 0.5rem;
+                }
+                .stat p {
+                    color: #4a5568;
+                    font-size: 0.9rem;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="main-container">
+                <h1>🔌 DataPrism Plugins</h1>
+                <p class="subtitle">
+                    Extensible analytics framework with 8 production-ready plugins,
+                    comprehensive CDN delivery, and enterprise-grade security.
+                </p>
+                
+                <div class="stats">
+                    <div class="stat">
+                        <h4>8</h4>
+                        <p>Official Plugins</p>
+                    </div>
+                    <div class="stat">
+                        <h4>~2MB</h4>
+                        <p>Complete Bundle</p>
+                    </div>
+                    <div class="stat">
+                        <h4>CDN</h4>
+                        <p>Ready</p>
+                    </div>
+                </div>
+                
+                <div class="quick-links">
+                    <a href="./docs/" class="link-card">
+                        <h3>📚 Documentation</h3>
+                        <p>Complete guides, API reference, and tutorials</p>
+                    </a>
+                    
+                    <a href="./cdn/" class="link-card">
+                        <h3>🚀 CDN Bundles</h3>
+                        <p>Production-ready plugin bundles for immediate use</p>
+                    </a>
+                    
+                    <a href="./examples/" class="link-card">
+                        <h3>💡 Examples</h3>
+                        <p>Live demos and usage examples</p>
+                    </a>
+                    
+                    <a href="./docs/plugins/" class="link-card">
+                        <h3>🔌 Plugin Gallery</h3>
+                        <p>Browse all available plugins and features</p>
+                    </a>
+                </div>
+                
+                <p style="color: #718096; font-size: 0.9rem; margin-top: 2rem;">
+                    🏗️ Built with TypeScript • 🔒 Security Sandboxed • ⚡ WebAssembly Powered
+                </p>
+            </div>
+        </body>
+        </html>
+        EOF
         
         # Copy examples directory for CDN testing
         if [ -d "examples" ]; then
@@ -331,13 +485,14 @@ jobs:
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Included Plugins" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Parquet HTTPFS Plugin (AWS S3 + CloudFlare R2)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ IronCalc Formula Engine" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ CSV Importer" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ LangGraph Integration" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ MCP Integration" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Performance Monitor" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Semantic Clustering" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Parquet HTTPFS Plugin** - Stream Parquet files from CloudFlare R2 + AWS S3" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **IronCalc Formula Engine** - Excel-compatible formulas with WebAssembly" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **CSV Importer** - High-performance CSV parsing and import" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **LangGraph Integration** - AI workflow orchestration" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **MCP Integration** - Model Context Protocol interoperability" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Performance Monitor** - Real-time performance tracking" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Semantic Clustering** - AI-powered data clustering" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Observable Charts** - Interactive data visualization" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # Plugin count

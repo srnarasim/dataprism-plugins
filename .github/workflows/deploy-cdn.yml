@@ -1,8 +1,9 @@
 name: Deploy Plugin CDN to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  # Disabled in favor of deploy-docs-and-cdn.yml which does both
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 permissions:
