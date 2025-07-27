@@ -318,17 +318,41 @@
             log('🌐 Loading DataPrism Core from CDN...');
             
             try {
-                // Load DataPrism Core with DuckDB
-                const CoreModule = await import('https://srnarasim.github.io/dataprism-core/dataprism-core.min.js');
-                DataPrismCore = CoreModule.default || CoreModule;
+                // Load DataPrism Core as IIFE bundle
+                const script = document.createElement('script');
+                script.src = 'https://srnarasim.github.io/dataprism-core/dataprism-core.min.js';
                 
-                // Initialize DataPrism Core
-                await DataPrismCore.initialize({
-                    enableDuckDB: true,
-                    enableHTTPFS: true
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
                 });
                 
-                log('✅ DataPrism Core loaded and initialized');
+                // DataPrism should now be available globally
+                if (typeof DataPrism === 'undefined') {
+                    throw new Error('DataPrism global not found after loading script');
+                }
+                
+                log('📦 DataPrism Core script loaded');
+                
+                // Create DataPrism Engine instance
+                const engine = new DataPrism.DataPrismEngine({
+                    enableDuckDB: true,
+                    enableWebGL: false,
+                    logLevel: 'info'
+                });
+                
+                // Initialize the engine
+                await engine.initialize();
+                log('✅ DataPrism Core initialized with DuckDB');
+                
+                DataPrismCore = {
+                    engine,
+                    duckdb: engine.duckdb,
+                    eventBus: engine.eventBus,
+                    services: engine.services
+                };
+                
                 return DataPrismCore;
                 
             } catch (error) {
@@ -360,7 +384,8 @@
                         
                         if (service === 'duckdb') {
                             if (method === 'getConnection') {
-                                return core.duckdb?.getConnection();
+                                // Return the DuckDB manager's connection
+                                return core.duckdb?.connection || core.duckdb;
                             }
                             if (method === 'query') {
                                 return core.duckdb?.query(...args);
@@ -370,6 +395,12 @@
                             }
                         }
                         
+                        // Try to call through engine services if available
+                        if (core.engine?.services?.call) {
+                            return core.engine.services.call(service, method, ...args);
+                        }
+                        
+                        // Fallback to direct service access
                         return core.services?.call(service, method, ...args);
                     }
                 }
