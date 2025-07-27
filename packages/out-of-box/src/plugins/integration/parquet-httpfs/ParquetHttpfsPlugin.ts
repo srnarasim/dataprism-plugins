@@ -79,7 +79,7 @@ export class ParquetHttpfsPlugin implements IIntegrationPlugin, IParquetHttpfsPl
   }
 
   getDescription(): string {
-    return "Stream and query Parquet files from AWS S3 and CloudFlare R2 using DuckDB's HTTPFS extension";
+    return "Stream and query Parquet files from cloud storage using DataPrism Core's cloud storage integration (browser-compatible)";
   }
 
   getAuthor(): string {
@@ -103,16 +103,25 @@ export class ParquetHttpfsPlugin implements IIntegrationPlugin, IParquetHttpfsPl
       const corsTestResults = await this.testCorsSupport();
       this.context.logger.info('CORS support test results:', corsTestResults);
       
-      // Initialize DuckDB HTTPFS extension
+      // Initialize DuckDB manager (browser-compatible mode)
       await this.duckdbManager.initialize();
       
-      this.context.logger.info("ParquetHttpfsPlugin initialized successfully with DataPrism Core integration");
+      // Check if we're in browser environment
+      const isBrowser = typeof window !== 'undefined';
+      
+      if (isBrowser) {
+        this.context.logger.info("ParquetHttpfsPlugin initialized in browser-compatible mode using DataPrism Core cloud storage");
+      } else {
+        this.context.logger.info("ParquetHttpfsPlugin initialized with full server-side capabilities");
+      }
       
       this.context.eventBus.publish('parquet-httpfs:initialized', {
         plugin: this.getName(),
         version: this.getVersion(),
         supportedProviders: this.authManager.listProviders(),
-        corsSupport: corsTestResults
+        corsSupport: corsTestResults,
+        browserCompatible: isBrowser,
+        mode: isBrowser ? 'browser' : 'server'
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
