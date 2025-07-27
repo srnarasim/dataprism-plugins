@@ -9959,13 +9959,16 @@ class DuckDBManager {
       try {
         const options = {
           type: "parquet",
-          format: "parquet"
+          format: "parquet",
+          strategy: "auto"
+          // Use DataPrism Core's auto CORS handling
         };
         if (credentials) {
           options.credentials = credentials;
         }
         this.context.logger.info(`🌐 Attempting DataPrism Core cloud table registration...`);
-        await this.duckdbCloudService.call("duckdbCloud", "registerCloudTable", alias, url, options);
+        this.context.logger.info(`📋 Registration options:`, options);
+        await this.duckdbCloudService.call("duckdb", "registerCloudTable", alias, url, options);
         this.context.logger.info(`✅ Registered cloud table '${alias}' using DataPrism Core service`);
       } catch (coreError) {
         this.context.logger.warn("❌ DataPrism Core cloud table registration failed, using data fetch approach:", coreError);
@@ -10039,8 +10042,11 @@ class DuckDBManager {
       this.context.logger.info(`Attempting to register table '${alias}' using browser-compatible approach`);
       try {
         this.context.logger.info(`🔍 Attempting to create view with read_parquet...`);
+        const testQuery = `SELECT * FROM read_parquet('${url}') LIMIT 1`;
+        this.context.logger.info(`🔍 Testing direct read_parquet: ${testQuery}`);
+        await this.executeRawQuery(testQuery);
         const createViewSql = `CREATE OR REPLACE VIEW ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
-        this.context.logger.info(`📝 Executing SQL: ${createViewSql}`);
+        this.context.logger.info(`📝 Creating view: ${createViewSql}`);
         await this.executeRawQuery(createViewSql);
         this.context.logger.info(`✅ Successfully created view '${alias}' referencing ${url}`);
         return;
@@ -10148,7 +10154,12 @@ class DuckDBManager {
     }
   }
   sanitizeAlias(alias) {
-    return alias.replace(/[^a-zA-Z0-9_]/g, "_");
+    let sanitized = alias.replace(/[^a-zA-Z0-9_]/g, "_");
+    if (!/^[a-zA-Z_]/.test(sanitized)) {
+      sanitized = "_" + sanitized;
+    }
+    this.context.logger.debug(`Sanitized alias '${alias}' to '${sanitized}'`);
+    return sanitized;
   }
   sanitizeSqlForLogging(sql) {
     return sql.replace(/(access_key_id|secret_access_key|session_token)='[^']+'/gi, "$1=***");

@@ -802,14 +802,7 @@
                 
                 log('📦 Loading plugin bundle...');
                 
-                // For debugging table creation issues, temporarily use mock plugin
-                // This ensures we can test table creation logic properly
-                plugin = new MockParquetHttpfsPlugin();
-                log('🎭 Using MockParquetHttpfsPlugin for table creation debugging');
-                log('ℹ️ This bypasses CDN loading to focus on table registration issues');
-                
-                // Uncomment below to try CDN loading once table creation is fixed
-                /*
+                // Try to load the real plugin from CDN first
                 try {
                     const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.es.js');
                     plugin = new ParquetHttpfsPlugin();
@@ -821,7 +814,6 @@
                     plugin = new MockParquetHttpfsPlugin();
                     log('✅ Loaded browser-compatible MockParquetHttpfsPlugin as fallback');
                 }
-                */
                 
                 updateProgress(70, 'Creating plugin context...');
                 pluginContext = createPluginContext(core);

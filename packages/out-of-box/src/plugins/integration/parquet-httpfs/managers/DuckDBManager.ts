@@ -113,6 +113,8 @@ export class DuckDBManager implements IDuckDBManager {
     await this.ensureInitialized();
     
     try {
+      this.context.logger.info(`🔧 DuckDBManager.registerTable called for '${alias}' with URL: ${url}`);
+      
       // Use DataPrism Core's cloud storage service to fetch and load the data
       this.context.logger.info(`Registering table '${alias}' using DataPrism Core cloud storage service`);
       
@@ -120,20 +122,26 @@ export class DuckDBManager implements IDuckDBManager {
         // Option 1: Try DataPrism Core's cloud table registration
         const options: any = {
           type: 'parquet',
-          format: 'parquet'
+          format: 'parquet',
+          strategy: 'auto'  // Use DataPrism Core's auto CORS handling
         };
         
         if (credentials) {
           options.credentials = credentials;
         }
         
-        await this.duckdbCloudService.call('duckdbCloud', 'registerCloudTable', alias, url, options);
-        this.context.logger.info(`Registered cloud table '${alias}' using DataPrism Core service`);
+        this.context.logger.info(`🌐 Attempting DataPrism Core cloud table registration...`);
+        this.context.logger.info(`📋 Registration options:`, options);
+        
+        // Try the correct DataPrism Core API
+        await this.duckdbCloudService.call('duckdb', 'registerCloudTable', alias, url, options);
+        this.context.logger.info(`✅ Registered cloud table '${alias}' using DataPrism Core service`);
         
       } catch (coreError) {
-        this.context.logger.warn('DataPrism Core cloud table registration failed, using data fetch approach:', coreError);
+        this.context.logger.warn('❌ DataPrism Core cloud table registration failed, using data fetch approach:', coreError);
         
         // Option 2: Fetch the data and insert it into DuckDB
+        this.context.logger.info(`🔄 Falling back to registerTableViaDataFetch...`);
         await this.registerTableViaDataFetch(alias, url, credentials);
       }
 
@@ -141,7 +149,9 @@ export class DuckDBManager implements IDuckDBManager {
       const tableInfo = await this.getTableInfoInternal(alias, url);
       this.tables.set(alias, tableInfo);
 
-      this.context.logger.info(`Successfully registered table '${alias}' from ${url}`);
+      this.context.logger.info(`✅ Successfully registered table '${alias}' from ${url}`);
+      this.context.logger.info(`📊 Table info: ${tableInfo.columns.length} columns, ${tableInfo.rowCount} rows`);
+      
       this.context.eventBus.publish('parquet:table-registered', {
         alias,
         url,
@@ -214,20 +224,30 @@ export class DuckDBManager implements IDuckDBManager {
 
   private async registerTableViaDataFetch(alias: string, url: string, credentials?: Credentials): Promise<void> {
     try {
+      this.context.logger.info(`🔧 registerTableViaDataFetch called for '${alias}'`);
       this.context.logger.info(`Attempting to register table '${alias}' using browser-compatible approach`);
       
       // Since we can't use HTTPFS in browser, let's create a view that references the URL
       // This will work if DataPrism Core provides read_parquet functionality
       try {
-        // Try to create a view that references the Parquet file directly
+        this.context.logger.info(`🔍 Attempting to create view with read_parquet...`);
+        // First, try DataPrism Core's engine.query method with read_parquet
+        const testQuery = `SELECT * FROM read_parquet('${url}') LIMIT 1`;
+        this.context.logger.info(`🔍 Testing direct read_parquet: ${testQuery}`);
+        await this.executeRawQuery(testQuery);
+        
+        // If test succeeds, create a view that references the Parquet file directly
         const createViewSql = `CREATE OR REPLACE VIEW ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
+        this.context.logger.info(`📝 Creating view: ${createViewSql}`);
         await this.executeRawQuery(createViewSql);
         
-        this.context.logger.info(`Successfully created view '${alias}' referencing ${url}`);
+        this.context.logger.info(`✅ Successfully created view '${alias}' referencing ${url}`);
         return;
         
       } catch (readParquetError) {
-        this.context.logger.warn('Direct read_parquet failed, trying alternative approach:', readParquetError);
+        this.context.logger.warn('❌ Direct read_parquet failed, trying alternative approach:', readParquetError);
+        
+        this.context.logger.info(`🔄 Fallback: Creating table with sample data...`);
         
         // Fallback: Create a table with NYC taxi schema and sample data
         const createTableSql = `CREATE TABLE ${this.sanitizeAlias(alias)} (
@@ -240,7 +260,9 @@ export class DuckDBManager implements IDuckDBManager {
           total_amount DOUBLE
         )`;
         
+        this.context.logger.info(`📝 Executing CREATE TABLE: ${createTableSql}`);
         await this.executeRawQuery(createTableSql);
+        this.context.logger.info(`✅ Table structure created successfully`);
         
         // Insert sample NYC taxi data to demonstrate functionality
         const insertSampleDataSql = `INSERT INTO ${this.sanitizeAlias(alias)} VALUES 
@@ -250,14 +272,17 @@ export class DuckDBManager implements IDuckDBManager {
           (2, '2023-01-01 19:30:00', '2023-01-01 19:50:00', 3, 4.5, 22.00, 27.50),
           (1, '2023-01-01 20:15:00', '2023-01-01 20:40:00', 2, 6.2, 28.50, 34.80)`;
         
+        this.context.logger.info(`📝 Executing INSERT: ${insertSampleDataSql.substring(0, 100)}...`);
         await this.executeRawQuery(insertSampleDataSql);
+        this.context.logger.info(`✅ Sample data inserted successfully`);
         
-        this.context.logger.info(`Created table '${alias}' with sample NYC taxi data (browser demo mode)`);
+        this.context.logger.info(`✅ Created table '${alias}' with sample NYC taxi data (browser demo mode)`);
       }
       
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      this.context.logger.error(`Failed to register table via data fetch: ${message}`);
+      this.context.logger.error(`❌ Failed to register table via data fetch: ${message}`);
+      this.context.logger.error(`🐛 Full error details:`, error);
       throw new ParquetHttpfsError(`Data fetch registration failed: ${message}`, 'DATA_FETCH_ERROR', { alias, url });
     }
   }
@@ -354,7 +379,13 @@ export class DuckDBManager implements IDuckDBManager {
 
   private sanitizeAlias(alias: string): string {
     // Ensure alias is safe for SQL
-    return alias.replace(/[^a-zA-Z0-9_]/g, '_');
+    let sanitized = alias.replace(/[^a-zA-Z0-9_]/g, '_');
+    // Ensure it starts with a letter or underscore
+    if (!/^[a-zA-Z_]/.test(sanitized)) {
+      sanitized = '_' + sanitized;
+    }
+    this.context.logger.debug(`Sanitized alias '${alias}' to '${sanitized}'`);
+    return sanitized;
   }
 
   private sanitizeSqlForLogging(sql: string): string {
