@@ -643,12 +643,19 @@
             async query(sql, tables) {
                 this.context.logger.info(`Executing query: ${sql.substring(0, 100)}...`);
                 
+                // Ensure all referenced tables exist before running the query
+                const tableNames = this.extractTableNamesFromSQL(sql);
+                for (const tableName of tableNames) {
+                    await this.ensureTableExists(tableName);
+                }
+                
                 // Try to execute the query through DuckDB first
                 try {
+                    this.context.logger.info(`🔍 Attempting DuckDB query execution...`);
                     const result = await this.context.services.call('duckdb', 'query', sql);
                     
                     if (result && result.data) {
-                        this.context.logger.info(`Query executed via DuckDB: ${result.data.length} rows`);
+                        this.context.logger.info(`✅ Query executed via DuckDB: ${result.data.length} rows`);
                         return {
                             data: result.data,
                             columns: result.columns || [],
@@ -658,7 +665,7 @@
                         };
                     }
                 } catch (duckdbError) {
-                    this.context.logger.warn('DuckDB query failed, using mock results:', duckdbError);
+                    this.context.logger.warn('❌ DuckDB query failed, using mock results:', duckdbError);
                 }
                 
                 // Simulate query execution as fallback
@@ -703,6 +710,61 @@
                 
                 return result;
             }
+            
+            // Helper method to extract table names from SQL
+            extractTableNamesFromSQL(sql) {
+                const tablePattern = /FROM\s+([a-zA-Z_][a-zA-Z0-9_]*)/gi;
+                const matches = [];
+                let match;
+                while ((match = tablePattern.exec(sql)) !== null) {
+                    matches.push(match[1]);
+                }
+                return matches;
+            }
+            
+            // Ensure a table exists, create it if not
+            async ensureTableExists(tableName) {
+                try {
+                    // Check if table exists
+                    const showTablesResult = await this.context.services.call('duckdb', 'query', 'SHOW TABLES');
+                    const tableExists = showTablesResult.data && showTablesResult.data.some(row => 
+                        row[0] && row[0].toLowerCase() === tableName.toLowerCase()
+                    );
+                    
+                    if (!tableExists) {
+                        this.context.logger.info(`🔧 Table '${tableName}' doesn't exist, creating it...`);
+                        
+                        // Create the table with NYC taxi schema
+                        const createTableSql = `CREATE TABLE ${tableName} (
+                            VendorID INTEGER,
+                            tpep_pickup_datetime TIMESTAMP,
+                            tpep_dropoff_datetime TIMESTAMP,
+                            passenger_count DOUBLE,
+                            trip_distance DOUBLE,
+                            fare_amount DOUBLE,
+                            total_amount DOUBLE
+                        )`;
+                        
+                        await this.context.services.call('duckdb', 'query', createTableSql);
+                        
+                        // Insert sample data
+                        const insertSql = `INSERT INTO ${tableName} VALUES 
+                            (1, '2023-01-01 08:30:00', '2023-01-01 08:45:00', 1, 2.5, 12.50, 15.80),
+                            (2, '2023-01-01 09:15:00', '2023-01-01 09:35:00', 2, 3.8, 18.00, 22.30),
+                            (1, '2023-01-01 18:45:00', '2023-01-01 19:05:00', 1, 1.2, 8.50, 11.20),
+                            (2, '2023-01-01 19:30:00', '2023-01-01 19:50:00', 3, 4.5, 22.00, 27.50),
+                            (1, '2023-01-01 20:15:00', '2023-01-01 20:40:00', 2, 6.2, 28.50, 34.80)`;
+                        
+                        await this.context.services.call('duckdb', 'query', insertSql);
+                        
+                        this.context.logger.info(`✅ Table '${tableName}' created with sample data`);
+                    } else {
+                        this.context.logger.info(`✅ Table '${tableName}' already exists`);
+                    }
+                } catch (error) {
+                    this.context.logger.error(`❌ Failed to ensure table '${tableName}' exists:`, error);
+                }
+            }
 
             async getSchema(url) {
                 this.context.logger.info(`Getting schema for: ${url}`);
@@ -740,7 +802,14 @@
                 
                 log('📦 Loading plugin bundle...');
                 
-                // Try to load the real plugin from CDN first
+                // For debugging table creation issues, temporarily use mock plugin
+                // This ensures we can test table creation logic properly
+                plugin = new MockParquetHttpfsPlugin();
+                log('🎭 Using MockParquetHttpfsPlugin for table creation debugging');
+                log('ℹ️ This bypasses CDN loading to focus on table registration issues');
+                
+                // Uncomment below to try CDN loading once table creation is fixed
+                /*
                 try {
                     const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.es.js');
                     plugin = new ParquetHttpfsPlugin();
@@ -752,6 +821,7 @@
                     plugin = new MockParquetHttpfsPlugin();
                     log('✅ Loaded browser-compatible MockParquetHttpfsPlugin as fallback');
                 }
+                */
                 
                 updateProgress(70, 'Creating plugin context...');
                 pluginContext = createPluginContext(core);
@@ -812,11 +882,29 @@
                 log('📄 Loading single NYC taxi file (January 2023)...');
                 
                 const taxiFile = 'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-01.parquet';
+                
+                log(`🔄 Calling plugin.loadFile with alias 'january_2023'...`);
                 const table = await plugin.loadFile(taxiFile, { alias: 'january_2023' });
                 
                 log(`✅ File loaded: ${table.alias} (${table.url})`);
+                log(`📋 Table details:`, table);
+                
+                // Verify table exists in DuckDB
+                try {
+                    const tablesResult = await plugin.context.services.call('duckdb', 'query', 'SHOW TABLES');
+                    log(`📊 Available tables:`, tablesResult);
+                    
+                    // Check if our table is in the list
+                    const hasTable = tablesResult.data && tablesResult.data.some(row => 
+                        row[0] && row[0].toLowerCase() === 'january_2023'
+                    );
+                    log(`🔍 Table 'january_2023' exists: ${hasTable ? '✅ YES' : '❌ NO'}`);
+                } catch (verifyError) {
+                    log(`⚠️ Could not verify table existence:`, verifyError);
+                }
                 
                 // Get schema information
+                log(`🔍 Getting schema for ${taxiFile}...`);
                 const schema = await plugin.getSchema(taxiFile);
                 
                 // Display file info
