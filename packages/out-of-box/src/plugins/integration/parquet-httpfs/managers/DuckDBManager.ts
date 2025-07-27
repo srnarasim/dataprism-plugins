@@ -177,6 +177,15 @@ export class DuckDBManager implements IDuckDBManager {
         const selectResult = await this.executeRawQuery(`SELECT COUNT(*) FROM ${this.sanitizeAlias(alias)}`);
         this.context.logger.info(`✅ Immediate SELECT result:`, selectResult);
         
+        // Double-check that the view is listed in available tables
+        this.context.logger.info(`🔍 Final verification - checking if '${alias}' appears in table list...`);
+        try {
+          const finalTableCheck = await this.executeRawQuery('SHOW TABLES');
+          this.context.logger.info(`📋 Final table list after registration:`, finalTableCheck);
+        } catch (finalCheckError) {
+          this.context.logger.warn('⚠️ Could not perform final table check:', finalCheckError);
+        }
+        
       } catch (directError) {
         this.context.logger.warn('❌ Direct DuckDB SQL registration failed, trying cloud service fallback:', directError);
         
@@ -422,8 +431,8 @@ export class DuckDBManager implements IDuckDBManager {
       this.context.logger.info(`📋 Schema query result:`, schemaResult);
       
       const columns: ColumnInfo[] = schemaResult.data.map((row: any) => ({
-        name: row[0], // column_name
-        type: this.mapDuckDBTypeToDataType(row[1]), // column_type
+        name: row[0] || 'unknown_column', // column_name
+        type: this.mapDuckDBTypeToDataType(row[1] || 'string'), // column_type
         nullable: row[2] === 'YES', // null
         metadata: {}
       }));
@@ -471,6 +480,11 @@ export class DuckDBManager implements IDuckDBManager {
 
   private mapDuckDBTypeToDataType(duckdbType: string): any {
     // Map DuckDB types to our DataType enum
+    if (!duckdbType) {
+      this.context.logger.warn('mapDuckDBTypeToDataType received undefined/null type, defaulting to string');
+      return 'string';
+    }
+    
     const lowerType = duckdbType.toLowerCase();
     
     if (lowerType.includes('varchar') || lowerType.includes('string')) return 'string';
