@@ -233,16 +233,12 @@
     
     <div class="info status">
         <strong>🌐 Complete CDN Integration Demo</strong><br>
-        This example demonstrates loading DataPrism Core with DuckDB and the Parquet HTTPFS Plugin from CDN to analyze real NYC Yellow Taxi data hosted on CloudFlare R2. Currently using a mock plugin while CDN deployment propagates (GitHub Pages can take 5-10 minutes to update).
+        This example demonstrates loading DataPrism Core with DuckDB and the Parquet HTTPFS Plugin from CDN to analyze real NYC Yellow Taxi data hosted on CloudFlare R2. The example automatically tries the real plugin first, falling back to a mock plugin if CDN is unavailable.
     </div>
     
-    <div class="warning status">
-        <strong>⏳ CDN Status:</strong> Plugin bundles are deploying to GitHub Pages. For immediate testing with the real plugin, you can:
-        <ul style="margin: 10px 0; padding-left: 20px;">
-            <li>Wait 5-10 minutes for CDN deployment to complete</li>
-            <li>Or run a local development server: <code>npm run dev</code></li>
-            <li>Check CDN status: <a href="https://srnarasim.github.io/dataprism-plugins/cdn/" target="_blank">https://srnarasim.github.io/dataprism-plugins/cdn/</a></li>
-        </ul>
+    <div class="success status">
+        <strong>✅ CDN Ready:</strong> Plugin bundles are now available at <a href="https://srnarasim.github.io/dataprism-plugins/cdn/" target="_blank">https://srnarasim.github.io/dataprism-plugins/cdn/</a>
+        <br>Click "Load DataPrism Core + Plugin" to start with the real plugin, or use "Check CDN Status" to verify availability.
     </div>
 
     <div class="dataset-info">
