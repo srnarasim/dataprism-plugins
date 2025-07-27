@@ -167,7 +167,11 @@
       "Bash(git push:*)",
       "Bash(curl:*)",
       "Bash(gh run list:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(node:*)",
+      "WebFetch(domain:srnarasim.github.io)",
+      "Bash(npm run:*)",
+      "Bash(pkill:*)"
     ],
     "deny": []
   }

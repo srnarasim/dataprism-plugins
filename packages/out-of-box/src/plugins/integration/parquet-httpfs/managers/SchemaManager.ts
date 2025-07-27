@@ -3,7 +3,8 @@ import {
   ColumnInfo, 
   ValidationResult, 
   ValidationError,
-  ParquetHttpfsError 
+  ParquetHttpfsError,
+  IDuckDBManager 
 } from "../types/interfaces.js";
 import { PluginContext } from "../../../types/index.js";
 
@@ -16,11 +17,22 @@ export interface SchemaCache {
 
 export class SchemaManager {
   private context: PluginContext;
+  private duckdbManager: IDuckDBManager | null = null;
   private cache: Map<string, SchemaCache> = new Map();
   private defaultCacheTTL: number = 3600000; // 1 hour
+  private httpClientService: any;
+  private cloudStorageService: any;
 
-  constructor(context: PluginContext) {
+  constructor(context: PluginContext, duckdbManager?: IDuckDBManager) {
     this.context = context;
+    this.duckdbManager = duckdbManager || null;
+    // Get DataPrism Core services
+    this.httpClientService = context.services;
+    this.cloudStorageService = context.services;
+  }
+
+  setDuckDBManager(duckdbManager: IDuckDBManager): void {
+    this.duckdbManager = duckdbManager;
   }
 
   async getSchema(url: string, forceRefresh: boolean = false): Promise<ParquetSchema> {
@@ -185,11 +197,32 @@ export class SchemaManager {
 
   private async fetchSchema(url: string): Promise<ParquetSchema> {
     try {
-      // Get file metadata first
+      // Try DataPrism Core's cloudStorageService.getFileSchema first
+      try {
+        const coreSchema = await this.cloudStorageService.call('cloudStorage', 'getFileSchema', url);
+        
+        if (coreSchema) {
+          const schema: ParquetSchema = {
+            columns: coreSchema.columns || [],
+            rowCount: coreSchema.rowCount || 0,
+            fileSize: coreSchema.fileSize || 0,
+            metadata: {
+              contentType: coreSchema.contentType || 'application/octet-stream',
+              lastModified: coreSchema.lastModified,
+              etag: coreSchema.etag
+            }
+          };
+          
+          this.context.logger.debug('Schema retrieved using DataPrism Core cloud storage service');
+          return schema;
+        }
+      } catch (coreError) {
+        this.context.logger.warn('DataPrism Core schema service failed, falling back to custom implementation:', coreError);
+      }
+      
+      // Fallback to custom implementation
       const metadata = await this.getFileMetadata(url);
       
-      // For now, we'll create a basic schema structure
-      // In a real implementation, we would parse the Parquet file header
       const schema: ParquetSchema = {
         columns: await this.extractColumnInfo(url),
         rowCount: metadata.estimatedRows,
@@ -216,31 +249,58 @@ export class SchemaManager {
     estimatedRows?: number;
   }> {
     try {
-      // Try browser fetch first for CORS-enabled sources
-      const response = await fetch(url, { method: 'HEAD' });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // Try DataPrism Core's CORS-aware HTTP client first
+      try {
+        const response = await this.httpClientService.call('httpClient', 'fetchWithCorsHandling', url, { method: 'HEAD' });
+        
+        if (response && response.ok) {
+          const fileSize = parseInt(response.headers.get('content-length') || '0', 10);
+          const contentType = response.headers.get('content-type') || undefined;
+          const lastModified = response.headers.get('last-modified') || undefined;
+          const etag = response.headers.get('etag') || undefined;
+
+          // Rough estimation of rows based on file size
+          const estimatedRows = Math.floor(fileSize / 100); // Assume ~100 bytes per row
+
+          this.context.logger.debug(`File metadata via DataPrism Core HTTP client: ${fileSize} bytes`);
+          
+          return {
+            fileSize,
+            contentType,
+            lastModified,
+            etag,
+            estimatedRows
+          };
+        } else {
+          throw new Error('DataPrism Core HTTP client request failed');
+        }
+      } catch (httpError) {
+        this.context.logger.warn('DataPrism Core HTTP client failed, trying browser fetch:', httpError);
+        
+        // Fallback to browser fetch
+        const response = await fetch(url, { method: 'HEAD' });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const fileSize = parseInt(response.headers.get('content-length') || '0', 10);
+        const contentType = response.headers.get('content-type') || undefined;
+        const lastModified = response.headers.get('last-modified') || undefined;
+        const etag = response.headers.get('etag') || undefined;
+        const estimatedRows = Math.floor(fileSize / 100);
+
+        return {
+          fileSize,
+          contentType,
+          lastModified,
+          etag,
+          estimatedRows
+        };
       }
-
-      const fileSize = parseInt(response.headers.get('content-length') || '0', 10);
-      const contentType = response.headers.get('content-type') || undefined;
-      const lastModified = response.headers.get('last-modified') || undefined;
-      const etag = response.headers.get('etag') || undefined;
-
-      // Rough estimation of rows based on file size
-      const estimatedRows = Math.floor(fileSize / 100); // Assume ~100 bytes per row
-
-      return {
-        fileSize,
-        contentType,
-        lastModified,
-        etag,
-        estimatedRows
-      };
     } catch (error) {
-      // If browser fetch fails (likely CORS), try to get metadata via DuckDB
-      this.context.logger.warn(`Browser fetch failed for ${url}, trying DuckDB approach: ${error}`);
+      // If all HTTP methods fail (likely CORS), try to get metadata via DuckDB
+      this.context.logger.warn(`HTTP requests failed for ${url}, trying DuckDB approach: ${error}`);
       return await this.getFileMetadataViaDuckDB(url);
     }
   }
@@ -372,17 +432,24 @@ export class SchemaManager {
     statusCode?: number;
   }> {
     try {
-      const response = await fetch(url, { 
+      // Use DataPrism Core's CORS-aware HTTP client
+      const response = await this.httpClientService.call('httpClient', 'fetchWithCorsHandling', url, { 
         method: 'HEAD',
-        // Add a timeout
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+        timeout: 10000 // 10 second timeout
       });
 
-      return {
-        accessible: response.ok,
-        error: response.ok ? undefined : `HTTP ${response.status}: ${response.statusText}`,
-        statusCode: response.status
-      };
+      if (response) {
+        return {
+          accessible: response.ok,
+          error: response.ok ? undefined : `HTTP ${response.status}: ${response.statusText}`,
+          statusCode: response.status
+        };
+      } else {
+        return {
+          accessible: false,
+          error: 'No response from DataPrism Core HTTP client'
+        };
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {

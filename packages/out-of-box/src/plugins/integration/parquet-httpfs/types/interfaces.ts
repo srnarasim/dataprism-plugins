@@ -88,6 +88,11 @@ export interface ParquetHttpfsConfig {
   cacheSchema: boolean; // Default: true
   retryAttempts: number; // Default: 3
   chunkSize: number; // Default: 1MB for streaming
+  corsConfig?: {
+    strategy: 'auto' | 'proxy' | 'direct'; // DataPrism Core CORS handling strategy
+    cacheTimeout: number; // Cache timeout for CORS preflight responses
+    retryAttempts: number; // Number of retry attempts for CORS failures
+  };
 }
 
 export interface CORSOptions {

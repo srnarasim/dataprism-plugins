@@ -61,6 +61,11 @@ export class ParquetHttpfsPlugin implements IIntegrationPlugin, IParquetHttpfsPl
       cacheSchema: true,
       retryAttempts: 3,
       chunkSize: 1024 * 1024, // 1MB
+      corsConfig: {
+        strategy: 'auto', // Use DataPrism Core's automatic CORS handling
+        cacheTimeout: 300000,
+        retryAttempts: 2
+      }
     };
   }
 
@@ -91,18 +96,23 @@ export class ParquetHttpfsPlugin implements IIntegrationPlugin, IParquetHttpfsPl
   async initialize(context: PluginContext): Promise<void> {
     this.context = context;
     this.duckdbManager = new DuckDBManager(context);
-    this.schemaManager = new SchemaManager(context);
+    this.schemaManager = new SchemaManager(context, this.duckdbManager);
 
     try {
+      // Test CORS support for common cloud storage providers
+      const corsTestResults = await this.testCorsSupport();
+      this.context.logger.info('CORS support test results:', corsTestResults);
+      
       // Initialize DuckDB HTTPFS extension
       await this.duckdbManager.initialize();
       
-      this.context.logger.info("ParquetHttpfsPlugin initialized successfully");
+      this.context.logger.info("ParquetHttpfsPlugin initialized successfully with DataPrism Core integration");
       
       this.context.eventBus.publish('parquet-httpfs:initialized', {
         plugin: this.getName(),
         version: this.getVersion(),
-        supportedProviders: this.authManager.listProviders()
+        supportedProviders: this.authManager.listProviders(),
+        corsSupport: corsTestResults
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -663,6 +673,33 @@ export class ParquetHttpfsPlugin implements IIntegrationPlugin, IParquetHttpfsPl
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.context?.logger.error(`Failed to execute partitioned query:`, message);
       throw new ParquetHttpfsError(`Partitioned query failed: ${message}`, 'PARTITIONED_QUERY_ERROR', { sql });
+    }
+  }
+
+  // CORS support testing
+  private async testCorsSupport(): Promise<any> {
+    try {
+      // Test common cloud storage providers
+      const testUrls = [
+        'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev', // CloudFlare R2
+        'https://s3.amazonaws.com', // AWS S3
+      ];
+      
+      const results: any = {};
+      
+      for (const testUrl of testUrls) {
+        try {
+          const corsResult = await this.context.services.call('httpClient', 'testCorsSupport', testUrl);
+          results[testUrl] = corsResult;
+        } catch (error) {
+          results[testUrl] = { supported: false, error: error instanceof Error ? error.message : 'Unknown error' };
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      this.context.logger.warn('CORS support testing failed:', error);
+      return {};
     }
   }
 

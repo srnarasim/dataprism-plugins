@@ -1,43 +1,67 @@
-# DataPrism Plugins CDN Testing Guide
+# DataPrism Plugins Examples - Local Development Guide
 
-This directory contains examples and testing tools for validating DataPrism plugins loaded from CDN, specifically demonstrating the Parquet HTTPFS Plugin with real NYC Yellow Taxi data from CloudFlare R2.
+Interactive examples demonstrating DataPrism Plugin Framework with real cloud data analysis.
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Fixed Common Issues)
 
-### Option 1: Local File Testing
+### ✅ Recommended Method: HTTP Server with CORS
 
-1. **Open the HTML file directly in your browser:**
-   ```bash
-   # Navigate to the examples directory
-   cd /path/to/dataprism-plugins/examples
-   
-   # Open in your default browser (or manually open the file)
-   open cdn-usage.html    # macOS
-   xdg-open cdn-usage.html    # Linux
-   start cdn-usage.html       # Windows
-   ```
-
-2. **Start testing immediately:**
-   - Click "📦 Load Plugin from CDN" 
-   - Wait for plugin initialization
-   - Try the different analysis options
-
-### Option 2: Local Web Server (Recommended)
-
-For full functionality and to simulate real CDN loading conditions:
+You're running `npx serve .` which is correct, but you need CORS headers for ES6 modules:
 
 ```bash
-# Using Python (recommended)
-cd /path/to/dataprism-plugins/examples
+# From the examples directory
+cd examples
+
+# Option 1: Serve with CORS (RECOMMENDED)
+npx serve . --cors
+
+# Option 2: Use http-server with CORS
+npx http-server . --cors -p 8000
+
+# Option 3: Python with CORS (if you prefer)
 python3 -m http.server 8000
-
-# Or using Node.js
-npx serve .
-
-# Or using any other local server
 ```
 
-Then navigate to: `http://localhost:8000/cdn-usage.html`
+**Then navigate to**: `http://localhost:3000/cdn-usage.html` (or `http://localhost:8000/cdn-usage.html`)
+
+### 🔧 Why You Need CORS
+
+The JavaScript syntax errors you're seeing are likely caused by **CORS restrictions** when loading ES6 modules. The `--cors` flag is essential for:
+
+- Loading external CDN resources
+- ES6 module imports
+- Fetch API requests
+- WebAssembly (DuckDB) initialization
+
+### 📱 Browser DevTools Debugging
+
+1. **Open DevTools**: Press `F12` or right-click → "Inspect"
+2. **Check Console Tab**: Look for the real error details
+3. **Common Error Patterns**:
+   ```
+   ❌ "Unexpected token 'catch'" → Missing CORS headers
+   ✅ "🌐 Loading DataPrism Core from CDN..." → Working correctly
+   ✅ "✅ DataPrism Core initialized with DuckDB" → Success!
+   ```
+
+### 🏗️ Alternative Local Setup
+
+If you're still having issues, try these alternatives:
+
+```bash
+# Method 1: VS Code Live Server (easiest)
+# 1. Install "Live Server" extension in VS Code
+# 2. Right-click cdn-usage.html → "Open with Live Server"
+
+# Method 2: Node.js development server
+cd .. # Go to project root
+npm install
+npm run dev
+# Then visit: http://localhost:3000/examples/cdn-usage.html
+
+# Method 3: Simple file serving (may have limitations)
+npx http-server . -p 8000 -c-1 --cors -o
+```
 
 ### Option 3: GitHub Pages (Once Deployed)
 

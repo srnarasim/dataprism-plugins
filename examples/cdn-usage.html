@@ -363,16 +363,34 @@
                 
                 log('📦 DataPrism Core script loaded');
                 
-                // Create DataPrism Engine instance
+                // Create DataPrism Engine instance with CORS and cloud storage support
                 const engine = new DataPrism.DataPrismEngine({
                     enableDuckDB: true,
                     enableWebGL: false,
-                    logLevel: 'info'
+                    logLevel: 'info',
+                    corsConfig: {
+                        strategy: 'auto', // Automatically try direct access, fall back to proxy
+                        cacheTimeout: 300000,
+                        retryAttempts: 2
+                    },
+                    cloudStorageConfig: {
+                        providers: ['aws', 'cloudflare', 'google', 'azure'],
+                        autoDetect: true,
+                        corsHandling: 'auto'
+                    }
                 });
                 
                 // Initialize the engine
                 await engine.initialize();
-                log('✅ DataPrism Core initialized with DuckDB');
+                log('✅ DataPrism Core initialized with DuckDB, CORS, and cloud storage support');
+                
+                // Test CORS support for CloudFlare R2
+                try {
+                    const corsResults = await engine.services.httpClient.testCorsSupport('https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev');
+                    log(`🌐 CloudFlare R2 CORS support: ${corsResults.supported ? '✅ Supported' : '⚠️ Limited (will use fallback)'}`);
+                } catch (corsError) {
+                    log('⚠️ CORS support test failed, will use DuckDB fallback methods');
+                }
                 
                 DataPrismCore = {
                     engine,

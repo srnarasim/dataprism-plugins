@@ -16,9 +16,12 @@ export class DuckDBManager implements IDuckDBManager {
   private connection: any = null; // DuckDB connection will be injected
   private tables: Map<string, TableInfo> = new Map();
   private initialized: boolean = false;
+  private duckdbCloudService: any;
 
   constructor(context: PluginContext) {
     this.context = context;
+    // Get DataPrism Core's DuckDB cloud service
+    this.duckdbCloudService = context.services;
   }
 
   async initialize(): Promise<void> {
@@ -104,20 +107,38 @@ export class DuckDBManager implements IDuckDBManager {
     await this.ensureInitialized();
     
     try {
-      // Configure HTTPFS for the appropriate provider
-      if (credentials) {
-        await this.configureHttpfsCredentials(url, credentials);
-      }
+      // Try DataPrism Core's cloud table registration first
+      try {
+        const options: any = {
+          type: 'parquet',
+          httpfs: true
+        };
+        
+        if (credentials) {
+          options.credentials = credentials;
+        }
+        
+        await this.duckdbCloudService.call('duckdbCloud', 'registerCloudTable', alias, url, options);
+        
+        this.context.logger.info(`Registered cloud table '${alias}' using DataPrism Core service`);
+      } catch (coreError) {
+        this.context.logger.warn('DataPrism Core cloud table registration failed, using fallback:', coreError);
+        
+        // Fallback to custom HTTPFS registration
+        if (credentials) {
+          await this.configureHttpfsCredentials(url, credentials);
+        }
 
-      // Register the table with DuckDB
-      const registerSql = `CREATE OR REPLACE TABLE ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
-      await this.executeRawQuery(registerSql);
+        // Register the table with DuckDB using direct SQL
+        const registerSql = `CREATE OR REPLACE TABLE ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
+        await this.executeRawQuery(registerSql);
+      }
 
       // Get table information
       const tableInfo = await this.getTableInfoInternal(alias, url);
       this.tables.set(alias, tableInfo);
 
-      this.context.logger.info(`Registered table '${alias}' from ${url}`);
+      this.context.logger.info(`Successfully registered table '${alias}' from ${url}`);
       this.context.eventBus.publish('parquet:table-registered', {
         alias,
         url,
