@@ -20,7 +20,7 @@ export class DuckDBManager implements IDuckDBManager {
 
   constructor(context: PluginContext) {
     this.context = context;
-    // Get DataPrism Core's DuckDB cloud service
+    // Get DataPrism Core's service proxy
     this.duckdbCloudService = context.services;
   }
 
@@ -118,31 +118,53 @@ export class DuckDBManager implements IDuckDBManager {
       // Use DataPrism Core's cloud storage service to fetch and load the data
       this.context.logger.info(`Registering table '${alias}' using DataPrism Core cloud storage service`);
       
+      // Follow the exact pattern from DataPrism Core cloud storage demo
+      this.context.logger.info(`🌐 Attempting direct DuckDB SQL registration for '${alias}'...`);
+      
       try {
-        // Option 1: Try DataPrism Core's cloud table registration
-        const options: any = {
-          type: 'parquet',
-          format: 'parquet',
-          strategy: 'auto'  // Use DataPrism Core's auto CORS handling
-        };
+        // First, test that we can read the Parquet file
+        this.context.logger.info(`🔍 Testing file accessibility: ${url}`);
+        const testQuery = `SELECT COUNT(*) as row_count FROM read_parquet('${url}') LIMIT 1`;
+        const testResult = await this.executeRawQuery(testQuery);
+        this.context.logger.info(`✅ File test successful - row count test result:`, testResult);
         
-        if (credentials) {
-          options.credentials = credentials;
+        // If test succeeds, create a view
+        this.context.logger.info(`📝 Creating view '${alias}' for ${url}`);
+        const createViewSql = `CREATE OR REPLACE VIEW ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
+        const createResult = await this.executeRawQuery(createViewSql);
+        this.context.logger.info(`✅ View created successfully:`, createResult);
+        
+        // Immediately verify the view exists
+        const verifyQuery = `DESCRIBE ${this.sanitizeAlias(alias)}`;
+        const verifyResult = await this.executeRawQuery(verifyQuery);
+        this.context.logger.info(`✅ View verification successful - columns found:`, verifyResult);
+        
+      } catch (directError) {
+        this.context.logger.warn('❌ Direct DuckDB SQL registration failed, trying cloud service fallback:', directError);
+        
+        // Fallback to DataPrism Core cloud service if available
+        try {
+          const options: any = {
+            corsHandling: 'auto'
+          };
+          
+          if (credentials) {
+            options.credentials = credentials;
+          }
+          
+          this.context.logger.info(`🔄 Attempting duckdbCloud.registerCloudTable fallback...`);
+          const fallbackResult = await this.duckdbCloudService.call('duckdbCloud', 'registerCloudTable', alias, url, options);
+          this.context.logger.info(`✅ Cloud service fallback successful:`, fallbackResult);
+          
+          // Verify fallback registration
+          const verifyQuery = `DESCRIBE ${this.sanitizeAlias(alias)}`;
+          const verifyResult = await this.executeRawQuery(verifyQuery);
+          this.context.logger.info(`✅ Fallback verification successful:`, verifyResult);
+          
+        } catch (fallbackError) {
+          this.context.logger.error('❌ All registration methods failed:', fallbackError);
+          throw new ParquetHttpfsError(`All table registration methods failed. Direct: ${directError instanceof Error ? directError.message : 'Unknown'}. Fallback: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown'}`, 'TABLE_REGISTRATION_ERROR', { alias, url });
         }
-        
-        this.context.logger.info(`🌐 Attempting DataPrism Core cloud table registration...`);
-        this.context.logger.info(`📋 Registration options:`, options);
-        
-        // Try the correct DataPrism Core API
-        await this.duckdbCloudService.call('duckdb', 'registerCloudTable', alias, url, options);
-        this.context.logger.info(`✅ Registered cloud table '${alias}' using DataPrism Core service`);
-        
-      } catch (coreError) {
-        this.context.logger.warn('❌ DataPrism Core cloud table registration failed, using data fetch approach:', coreError);
-        
-        // Option 2: Fetch the data and insert it into DuckDB
-        this.context.logger.info(`🔄 Falling back to registerTableViaDataFetch...`);
-        await this.registerTableViaDataFetch(alias, url, credentials);
       }
 
       // Get table information
@@ -239,7 +261,19 @@ export class DuckDBManager implements IDuckDBManager {
         // If test succeeds, create a view that references the Parquet file directly
         const createViewSql = `CREATE OR REPLACE VIEW ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
         this.context.logger.info(`📝 Creating view: ${createViewSql}`);
-        await this.executeRawQuery(createViewSql);
+        const createViewResult = await this.executeRawQuery(createViewSql);
+        this.context.logger.info(`📋 CREATE VIEW result:`, createViewResult);
+        
+        // Immediately verify the view exists
+        try {
+          this.context.logger.info(`🔍 Verifying view '${alias}' exists after creation...`);
+          const verifyViewQuery = `DESCRIBE ${this.sanitizeAlias(alias)}`;
+          const verifyViewResult = await this.executeRawQuery(verifyViewQuery);
+          this.context.logger.info(`✅ View verification successful - columns found:`, verifyViewResult);
+        } catch (verifyViewError) {
+          this.context.logger.error(`❌ View verification failed immediately after creation:`, verifyViewError);
+          throw new ParquetHttpfsError(`View creation succeeded but view is not accessible: ${verifyViewError instanceof Error ? verifyViewError.message : 'Unknown error'}`, 'VIEW_VERIFICATION_ERROR', { alias, url });
+        }
         
         this.context.logger.info(`✅ Successfully created view '${alias}' referencing ${url}`);
         return;
@@ -341,9 +375,13 @@ export class DuckDBManager implements IDuckDBManager {
 
   private async getTableInfoInternal(alias: string, url: string): Promise<TableInfo> {
     try {
+      this.context.logger.info(`🔍 Getting table info for '${alias}' from ${url}`);
+      
       // Get table schema information
       const schemaQuery = `DESCRIBE ${this.sanitizeAlias(alias)}`;
+      this.context.logger.info(`📝 Executing schema query: ${schemaQuery}`);
       const schemaResult = await this.executeRawQuery(schemaQuery);
+      this.context.logger.info(`📋 Schema query result:`, schemaResult);
       
       const columns: ColumnInfo[] = schemaResult.data.map((row: any) => ({
         name: row[0], // column_name

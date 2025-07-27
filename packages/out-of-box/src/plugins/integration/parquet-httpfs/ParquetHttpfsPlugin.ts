@@ -435,11 +435,13 @@ export class ParquetHttpfsPlugin implements IIntegrationPlugin, IParquetHttpfsPl
       });
 
       // Register table with DuckDB
+      this.context.logger.info(`Registering table '${alias}' with DuckDB manager...`);
       await this.duckdbManager.registerTable(
         alias,
         url,
         options.authentication?.credentials
       );
+      this.context.logger.info(`Table '${alias}' registered successfully with DuckDB manager`);
 
       this.reportProgress({
         alias,
@@ -460,6 +462,14 @@ export class ParquetHttpfsPlugin implements IIntegrationPlugin, IParquetHttpfsPl
       loadingStatus.endTime = new Date();
 
       this.context.logger.info(`Successfully loaded Parquet file: ${url} as ${alias}`);
+      
+      // Log table creation success for debugging
+      this.context.eventBus.publish('parquet:table-created', {
+        alias,
+        url,
+        success: true,
+        timestamp: new Date().toISOString()
+      });
       
       return tableRef;
     } catch (error) {
