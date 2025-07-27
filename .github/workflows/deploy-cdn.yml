@@ -92,7 +92,7 @@ jobs:
                 "umd": "./cdn/dataprism-plugins.umd.js",
                 "es": "./cdn/dataprism-plugins.es.js",
                 "description": "Complete bundle with framework and all plugins",
-                "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor", "ironcalc-formula", "langgraph-integration", "mcp-integration"]
+                "plugins": ["csv-importer", "observable-charts", "semantic-clustering", "performance-monitor", "ironcalc-formula", "langgraph-integration", "mcp-integration", "parquet-httpfs"]
               },
               "framework": {
                 "iife": "./dataprism-framework.min.js",
@@ -145,6 +145,12 @@ jobs:
                 "description": "Model Context Protocol integration for tool interoperability",
                 "size": "~500KB",
                 "dependencies": ["@modelcontextprotocol/sdk"]
+              },
+              "parquet-httpfs": {
+                "path": "./plugins/integration.js",
+                "description": "Stream and query Parquet files from CloudFlare R2 and other cloud storage",
+                "size": "~166KB",
+                "dependencies": ["duckdb-wasm"]
               }
             },
             "workers": {
@@ -286,6 +292,12 @@ jobs:
                               <div class="deps">Dependencies: @modelcontextprotocol/sdk</div>
                               <p>Model Context Protocol integration enabling bidirectional tool interoperability with external MCP servers.</p>
                           </div>
+                          <div class="plugin">
+                              <h3>📦 Parquet HTTPFS</h3>
+                              <div class="size">~166KB</div>
+                              <div class="deps">Dependencies: duckdb-wasm</div>
+                              <p>Stream and query Parquet files from CloudFlare R2 and other cloud storage using DataPrism Core integration.</p>
+                          </div>
                       </div>
                   </div>
                   
@@ -306,6 +318,7 @@ jobs:
                               <a href="./plugins/ironcalc-formula/index.js">IronCalc Formula Engine</a>
                               <a href="./plugins/langgraph-integration/index.js">LangGraph Integration</a>
                               <a href="./plugins/mcp-integration/index.js">MCP Integration</a>
+                              <a href="./plugins/integration.js">Parquet HTTPFS</a>
                           </div>
                           <div class="file">
                               <h3>Web Workers</h3>
