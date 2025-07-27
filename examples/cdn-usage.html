@@ -220,12 +220,12 @@
 <body>
     <div class="header">
         <h1>🚖 DataPrism Parquet HTTPFS Plugin</h1>
-        <p>CDN Demo with NYC Yellow Taxi Data from CloudFlare R2</p>
+        <p>Complete CDN Demo with DataPrism Core + NYC Yellow Taxi Data</p>
     </div>
     
     <div class="info status">
-        <strong>🌐 CDN Integration Demo</strong><br>
-        This example demonstrates loading the DataPrism Parquet HTTPFS Plugin from CDN and analyzing real NYC Yellow Taxi data hosted on CloudFlare R2. No authentication required!
+        <strong>🌐 Complete CDN Integration Demo</strong><br>
+        This example demonstrates loading DataPrism Core with DuckDB and the Parquet HTTPFS Plugin from CDN to analyze real NYC Yellow Taxi data hosted on CloudFlare R2. Everything loads from CDN - no local setup required!
     </div>
 
     <div class="dataset-info">
@@ -246,7 +246,7 @@
         
         <div class="buttons">
             <button onclick="loadPluginFromCDN()" id="loadBtn">
-                📦 Load Plugin from CDN
+                🚀 Load DataPrism Core + Plugin
             </button>
             <button onclick="testSingleFile()" id="singleBtn" disabled>
                 📄 Load Single File (Jan 2023)
@@ -279,7 +279,9 @@
 
     <div class="info status">
         <strong>💡 What This Demo Shows:</strong><br>
+        • Loading complete DataPrism Core with DuckDB from CDN<br>
         • Loading DataPrism plugins directly from CDN<br>
+        • Real DuckDB HTTPFS integration with cloud storage<br>
         • Working with real Parquet data from CloudFlare R2<br>
         • Multi-file dataset analysis capabilities<br>
         • Schema introspection and data validation<br>
@@ -302,21 +304,77 @@
         let analysisBtn = document.getElementById('analysisBtn');
         let clearBtn = document.getElementById('clearBtn');
 
-        // Global plugin instance
+        // Global plugin instance and DataPrism Core
         let plugin = null;
-        let mockContext = {
-            logger: {
-                info: (msg, ...args) => log(`ℹ️ ${msg}`, 'info'),
-                error: (msg, ...args) => log(`❌ ${msg}`, 'error'),
-                warn: (msg, ...args) => log(`⚠️ ${msg}`, 'warning'),
-                debug: (msg, ...args) => log(`🐛 ${msg}`, 'debug')
-            },
-            eventBus: {
-                publish: (event, data) => log(`📡 Event: ${event}`, 'info'),
-                subscribe: () => {},
-                unsubscribe: () => {}
+        let DataPrismCore = null;
+        let pluginContext = null;
+
+        // Load DataPrism Core first
+        async function loadDataPrismCore() {
+            if (DataPrismCore) {
+                return DataPrismCore;
             }
-        };
+            
+            log('🌐 Loading DataPrism Core from CDN...');
+            
+            try {
+                // Load DataPrism Core with DuckDB
+                const CoreModule = await import('https://srnarasim.github.io/dataprism-core/dataprism-core.min.js');
+                DataPrismCore = CoreModule.default || CoreModule;
+                
+                // Initialize DataPrism Core
+                await DataPrismCore.initialize({
+                    enableDuckDB: true,
+                    enableHTTPFS: true
+                });
+                
+                log('✅ DataPrism Core loaded and initialized');
+                return DataPrismCore;
+                
+            } catch (error) {
+                log(`❌ Failed to load DataPrism Core: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Create plugin context with real DataPrism Core services
+        function createPluginContext(core) {
+            return {
+                logger: {
+                    info: (msg, ...args) => log(`ℹ️ ${msg}`, 'info'),
+                    error: (msg, ...args) => log(`❌ ${msg}`, 'error'),
+                    warn: (msg, ...args) => log(`⚠️ ${msg}`, 'warning'),
+                    debug: (msg, ...args) => log(`🐛 ${msg}`, 'debug')
+                },
+                eventBus: {
+                    publish: (event, data) => {
+                        log(`📡 Event: ${event}`, 'info');
+                        core.eventBus?.publish(event, data);
+                    },
+                    subscribe: (event, handler) => core.eventBus?.subscribe(event, handler),
+                    unsubscribe: (event, handler) => core.eventBus?.unsubscribe(event, handler)
+                },
+                services: {
+                    call: async (service, method, ...args) => {
+                        log(`🔧 Service Call: ${service}.${method}`, 'info');
+                        
+                        if (service === 'duckdb') {
+                            if (method === 'getConnection') {
+                                return core.duckdb?.getConnection();
+                            }
+                            if (method === 'query') {
+                                return core.duckdb?.query(...args);
+                            }
+                            if (method === 'execute') {
+                                return core.duckdb?.execute(...args);
+                            }
+                        }
+                        
+                        return core.services?.call(service, method, ...args);
+                    }
+                }
+            };
+        }
 
         function log(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
@@ -509,23 +567,27 @@
             try {
                 loadBtn.disabled = true;
                 showProgress(true);
-                updateStatus('Loading DataPrism Parquet HTTPFS Plugin from CDN...', 'info');
+                updateStatus('Loading DataPrism Core and Parquet HTTPFS Plugin from CDN...', 'info');
                 
-                log('🌐 Loading DataPrism Parquet HTTPFS Plugin from CDN...');
-                updateProgress(20, 'Fetching plugin bundle...');
-                await new Promise(resolve => setTimeout(resolve, 800));
+                log('🌐 Loading DataPrism Core and Parquet HTTPFS Plugin from CDN...');
+                updateProgress(10, 'Loading DataPrism Core...');
                 
-                log('📦 Plugin bundle loaded successfully');
-                updateProgress(50, 'Initializing plugin...');
+                // Load DataPrism Core first
+                const core = await loadDataPrismCore();
+                updateProgress(40, 'DataPrism Core loaded, fetching plugin...');
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // 
+                log('📦 Loading plugin bundle...');
                 // Use ES module bundle for proper import support
                 const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.es.js');
                 plugin = new ParquetHttpfsPlugin();
                 
-                updateProgress(80, 'Configuring plugin context...');
-                await plugin.initialize(mockContext);
+                updateProgress(70, 'Creating plugin context...');
+                pluginContext = createPluginContext(core);
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                updateProgress(80, 'Initializing plugin with DuckDB...');
+                await plugin.initialize(pluginContext);
                 await new Promise(resolve => setTimeout(resolve, 300));
                 
                 updateProgress(100, 'Plugin ready!');
@@ -568,19 +630,24 @@
                 const taxiFile = 'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-01.parquet';
                 const table = await plugin.loadFile(taxiFile, { alias: 'january_2023' });
                 
+                log(`✅ File loaded: ${table.alias} (${table.url})`);
+                
+                // Get schema information
+                const schema = await plugin.getSchema(taxiFile);
+                
                 // Display file info
                 addResultCard('📊 File Information', `
                     <div class="metric">
-                        <span>File Size:</span>
-                        <span class="metric-value">${(table.schema.fileSize / 1024 / 1024).toFixed(1)} MB</span>
+                        <span>URL:</span>
+                        <span class="metric-value">${table.url}</span>
                     </div>
                     <div class="metric">
-                        <span>Estimated Rows:</span>
-                        <span class="metric-value">${formatNumber(table.schema.rowCount)}</span>
+                        <span>Table Alias:</span>
+                        <span class="metric-value">${table.alias}</span>
                     </div>
                     <div class="metric">
-                        <span>Columns:</span>
-                        <span class="metric-value">${table.schema.columns.length}</span>
+                        <span>Schema Columns:</span>
+                        <span class="metric-value">${schema.columns ? schema.columns.length : 'N/A'}</span>
                     </div>
                     <div class="metric">
                         <span>Provider:</span>
@@ -854,11 +921,11 @@
         };
 
         // Initialize
-        updateStatus('Ready to load DataPrism Parquet HTTPFS Plugin from CDN', 'info');
-        log('🌟 DataPrism Parquet HTTPFS Plugin CDN Demo Ready');
-        log('📚 This demo shows real-world usage with NYC taxi data');
-        log('🌐 Plugin loaded from CDN, data from CloudFlare R2');
-        log('🚀 Click "Load Plugin from CDN" to begin');
+        updateStatus('Ready to load DataPrism Core and Parquet HTTPFS Plugin from CDN', 'info');
+        log('🌟 DataPrism Complete CDN Demo Ready');
+        log('📚 This demo shows real-world usage with DataPrism Core + plugins');
+        log('🌐 Everything loaded from CDN: Core, DuckDB, Plugin, and R2 data');
+        log('🚀 Click "Load DataPrism Core + Plugin" to begin');
     </script>
 </body>
 </html>
