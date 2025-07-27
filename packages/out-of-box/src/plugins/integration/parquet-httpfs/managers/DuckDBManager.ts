@@ -62,19 +62,48 @@ export class DuckDBManager implements IDuckDBManager {
     const startTime = performance.now();
     
     try {
-      this.context.logger.debug('Executing DuckDB query:', sql);
+      this.context.logger.info('🔍 Executing DuckDB query:', sql);
+      
+      // Before executing the query, let's check what tables/views are available
+      try {
+        this.context.logger.info('📊 Checking available tables before query execution...');
+        const showTablesResult = await this.executeRawQuery('SHOW TABLES');
+        this.context.logger.info('📋 Available tables:', showTablesResult);
+        
+        // Also try to show views
+        const showViewsResult = await this.executeRawQuery("SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = 'main'");
+        this.context.logger.info('📋 Available views/tables from information_schema:', showViewsResult);
+      } catch (listError) {
+        this.context.logger.warn('⚠️ Could not list tables/views:', listError);
+      }
       
       const result = await this.executeRawQuery(sql);
       const endTime = performance.now();
       
+      // Debug the actual result structure
+      this.context.logger.info('📋 Raw DuckDB result structure:', {
+        type: typeof result,
+        keys: result ? Object.keys(result) : 'null',
+        data: result?.data ? `${result.data.length} rows` : 'no data property',
+        columns: result?.columns ? `${result.columns.length} columns` : 'no columns property',
+        fullResult: result
+      });
+      
       // Process DuckDB result into our format
       const queryResult: QueryResult = {
-        data: result.data || [],
-        columns: result.columns || [],
-        rowCount: result.data ? result.data.length : 0,
+        data: result?.data || result?.rows || [],
+        columns: result?.columns || result?.columnNames || [],
+        rowCount: (result?.data || result?.rows)?.length || 0,
         executionTime: endTime - startTime,
         bytesProcessed: this.estimateBytesProcessed(result)
       };
+      
+      this.context.logger.info('📊 Processed query result:', {
+        dataRows: queryResult.data.length,
+        columns: queryResult.columns.length,
+        columnNames: queryResult.columns,
+        firstRow: queryResult.data[0]
+      });
 
       this.context.eventBus.publish('duckdb:query-executed', {
         sql: this.sanitizeSqlForLogging(sql),
@@ -122,22 +151,29 @@ export class DuckDBManager implements IDuckDBManager {
       this.context.logger.info(`🌐 Attempting direct DuckDB SQL registration for '${alias}'...`);
       
       try {
-        // First, test that we can read the Parquet file
+        // Match the exact approach from DataPrism Core cloud storage demo
         this.context.logger.info(`🔍 Testing file accessibility: ${url}`);
-        const testQuery = `SELECT COUNT(*) as row_count FROM read_parquet('${url}') LIMIT 1`;
-        const testResult = await this.executeRawQuery(testQuery);
-        this.context.logger.info(`✅ File test successful - row count test result:`, testResult);
+        const testSql = `SELECT COUNT(*) as row_count FROM read_parquet('${url}')`;
+        this.context.logger.info(`📝 Running test SQL: ${testSql}`);
+        const testResult = await this.executeRawQuery(testSql);
+        this.context.logger.info(`✅ File test successful - result:`, testResult);
         
-        // If test succeeds, create a view
-        this.context.logger.info(`📝 Creating view '${alias}' for ${url}`);
-        const createViewSql = `CREATE OR REPLACE VIEW ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
-        const createResult = await this.executeRawQuery(createViewSql);
-        this.context.logger.info(`✅ View created successfully:`, createResult);
+        // Create the view using the same pattern as the demo
+        this.context.logger.info(`📝 Creating view '${alias}' using exact demo pattern`);
+        const sql = `CREATE OR REPLACE VIEW ${this.sanitizeAlias(alias)} AS SELECT * FROM read_parquet('${url}')`;
+        this.context.logger.info(`📝 Executing view creation SQL: ${sql}`);
+        const result = await this.executeRawQuery(sql);
+        this.context.logger.info(`✅ View creation result:`, result);
         
-        // Immediately verify the view exists
-        const verifyQuery = `DESCRIBE ${this.sanitizeAlias(alias)}`;
-        const verifyResult = await this.executeRawQuery(verifyQuery);
-        this.context.logger.info(`✅ View verification successful - columns found:`, verifyResult);
+        // Verify immediately with the same connection
+        this.context.logger.info(`🔍 Verifying view exists immediately after creation...`);
+        const verifyResult = await this.executeRawQuery(`DESCRIBE ${this.sanitizeAlias(alias)}`);
+        this.context.logger.info(`✅ View description result:`, verifyResult);
+        
+        // Test a simple query immediately
+        this.context.logger.info(`🔍 Testing immediate SELECT on the view...`);
+        const selectResult = await this.executeRawQuery(`SELECT COUNT(*) FROM ${this.sanitizeAlias(alias)}`);
+        this.context.logger.info(`✅ Immediate SELECT result:`, selectResult);
         
       } catch (directError) {
         this.context.logger.warn('❌ Direct DuckDB SQL registration failed, trying cloud service fallback:', directError);

@@ -922,6 +922,14 @@
                 log('🔍 Running basic statistics query...');
                 updateProgress(50, 'Analyzing data...');
                 
+                log('🔍 Checking available columns in the dataset...');
+                try {
+                    const columnsCheck = await plugin.query(`DESCRIBE january_2023`, [table]);
+                    log('📋 Available columns:', columnsCheck);
+                } catch (describeError) {
+                    log('⚠️ Could not describe table:', describeError);
+                }
+                
                 const stats = await plugin.query(`
                     SELECT 
                         COUNT(*) as total_trips,
@@ -929,19 +937,28 @@
                         AVG(fare_amount) as avg_fare
                     FROM january_2023
                 `, [table]);
+                
+                log('📊 Stats query result:', stats);
 
+                // Safe data access with fallbacks
+                const totalTrips = stats?.data?.[0]?.[0] || 'N/A';
+                const avgDistance = stats?.data?.[0]?.[1] || 'N/A';
+                const avgFare = stats?.data?.[0]?.[2] || 'N/A';
+                
+                log('📊 Extracted values:', { totalTrips, avgDistance, avgFare });
+                
                 addResultCard('📈 January 2023 Statistics', `
                     <div class="metric">
                         <span>Total Trips:</span>
-                        <span class="metric-value">${stats.data[0][0]}</span>
+                        <span class="metric-value">${totalTrips}</span>
                     </div>
                     <div class="metric">
                         <span>Avg Distance:</span>
-                        <span class="metric-value">${stats.data[0][1]} miles</span>
+                        <span class="metric-value">${avgDistance} miles</span>
                     </div>
                     <div class="metric">
                         <span>Avg Fare:</span>
-                        <span class="metric-value">${stats.data[0][2]}</span>
+                        <span class="metric-value">$${avgFare}</span>
                     </div>
                 `);
 
