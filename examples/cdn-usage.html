@@ -609,9 +609,13 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
                 log('📦 Loading plugin bundle...');
-                // Use ES module bundle for proper import support
-                const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.es.js');
-                plugin = new ParquetHttpfsPlugin();
+                // For now, use the mock plugin until CDN deployment is complete
+                // Once CDN is ready, uncomment this line:
+                // const { ParquetHttpfsPlugin } = await import('https://srnarasim.github.io/dataprism-plugins/cdn/dataprism-plugins.es.js');
+                // plugin = new ParquetHttpfsPlugin();
+                
+                // Use mock plugin temporarily
+                plugin = new MockParquetHttpfsPlugin();
                 
                 updateProgress(70, 'Creating plugin context...');
                 pluginContext = createPluginContext(core);
