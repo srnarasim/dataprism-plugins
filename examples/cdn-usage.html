@@ -407,7 +407,7 @@
                     unsubscribe: (event, handler) => core.eventBus?.unsubscribe(event, handler)
                 },
                 services: {
-                    call: async (service, method, ...args) => {
+                    call: async function(service, method, ...args) {
                         try {
                             log(`🔧 Service Call: ${service}.${method}`, 'info');
                             
