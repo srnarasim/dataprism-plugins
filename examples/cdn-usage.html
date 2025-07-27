@@ -939,6 +939,14 @@
                 `, [table]);
                 
                 log('📊 Stats query result:', stats);
+                log('📊 Stats data structure:', {
+                    hasData: !!stats?.data,
+                    dataLength: stats?.data?.length,
+                    firstRow: stats?.data?.[0],
+                    dataType: typeof stats?.data,
+                    fullStatsKeys: Object.keys(stats || {}),
+                    rawData: JSON.stringify(stats?.data?.slice(0, 2))
+                });
 
                 // Safe data access with fallbacks
                 const totalTrips = stats?.data?.[0]?.[0] || 'N/A';
@@ -946,6 +954,11 @@
                 const avgFare = stats?.data?.[0]?.[2] || 'N/A';
                 
                 log('📊 Extracted values:', { totalTrips, avgDistance, avgFare });
+                log('📊 Raw access attempts:', {
+                    'stats.data[0][0]': stats?.data?.[0]?.[0],
+                    'stats.data[0][1]': stats?.data?.[0]?.[1], 
+                    'stats.data[0][2]': stats?.data?.[0]?.[2]
+                });
                 
                 addResultCard('📈 January 2023 Statistics', `
                     <div class="metric">

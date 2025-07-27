@@ -102,7 +102,9 @@ export class DuckDBManager implements IDuckDBManager {
         dataRows: queryResult.data.length,
         columns: queryResult.columns.length,
         columnNames: queryResult.columns,
-        firstRow: queryResult.data[0]
+        firstRow: queryResult.data[0],
+        actualFirstRowData: queryResult.data[0] ? JSON.stringify(queryResult.data[0]) : 'no first row',
+        sampleDataValues: queryResult.data.slice(0, 2).map(row => JSON.stringify(row))
       });
 
       this.context.eventBus.publish('duckdb:query-executed', {
