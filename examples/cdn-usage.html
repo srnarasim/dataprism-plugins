@@ -309,7 +309,11 @@
     </div>
     
     <div class="warning status">
-        <strong>🔒 CORS Handling:</strong> CloudFlare R2 doesn't have CORS headers for browser access. The plugin automatically detects this and uses DuckDB queries for schema inspection instead of browser fetch. DuckDB HTTPFS can still access the data directly for analysis. This is a common pattern when working with cloud storage from browsers.
+        <strong>🔒 CORS Handling:</strong> CloudFlare R2 doesn't have CORS headers for browser access. The plugin automatically detects this and uses DuckDB queries for schema inspection instead of browser fetch. Note: Even DuckDB HTTPFS may encounter CORS restrictions in some browser environments. The plugin provides graceful fallbacks and enhanced logging to show what's working vs. what requires DataPrism Core enhancements.
+    </div>
+    
+    <div class="info status">
+        <strong>🔍 Debug Information:</strong> Check the browser console for detailed logs. You may see CORS errors alongside successful operations - this is expected behavior as the plugin attempts multiple strategies. Look for messages like "✅ File loaded" and "DESCRIBE table_name" to see what's actually working.
     </div>
 
     <script type="module">
