@@ -116,7 +116,8 @@ jobs:
         
         # Copy existing documentation if it exists
         if [ -d "docs" ]; then
-          cp -r docs/* dist/
+          cp -r docs/* dist/docs/
+          echo "Copied documentation from docs/ to dist/docs/"
         else
           echo "No docs directory found, creating minimal structure"
           mkdir -p dist/docs

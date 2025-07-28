@@ -171,7 +171,8 @@
       "Bash(node:*)",
       "WebFetch(domain:srnarasim.github.io)",
       "Bash(npm run:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(gh run view:*)"
     ],
     "deny": []
   }
