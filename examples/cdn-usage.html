@@ -246,7 +246,7 @@
         <h4>📊 Dataset Information</h4>
         <ul>
             <li><strong>Source:</strong> NYC Yellow Taxi Trip Data (Public Dataset)</li>
-            <li><strong>Location:</strong> NYC TLC Official (https://d37ci6vzurychx.cloudfront.net/)</li>
+            <li><strong>Location:</strong> CloudFlare R2 (https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/)</li>
             <li><strong>Format:</strong> Parquet files (~45-52MB each)</li>
             <li><strong>Pattern:</strong> yellow_tripdata_YYYY-MM.parquet</li>
             <li><strong>Columns:</strong> VendorID, pickup/dropoff times, distance, fare amounts, etc.</li>
@@ -302,7 +302,7 @@
         • Loading complete DataPrism Core with DuckDB from CDN<br>
         • Loading DataPrism plugins directly from CDN<br>
         • Real DuckDB HTTPFS integration with cloud storage<br>
-        • Working with real Parquet data from NYC TLC Official<br>
+        • Working with real Parquet data from CloudFlare R2<br>
         • Multi-file dataset analysis capabilities<br>
         • Schema introspection via DuckDB (CORS-resistant)<br>
         • Advanced SQL analytics on cloud data<br>
@@ -310,7 +310,7 @@
     </div>
     
     <div class="warning status">
-        <strong>🔒 CORS Handling:</strong> The NYC TLC CloudFront distribution allows CORS access, making this a perfect demonstration of real-world parquet streaming. If CORS were restricted, the plugin would automatically fallback to DuckDB-only operations. The plugin provides comprehensive logging to show all connection strategies.
+        <strong>🔒 CORS Handling:</strong> CloudFlare R2 provides CORS access for this demonstration of real-world parquet streaming. If CORS were restricted, the plugin would automatically fallback to DuckDB-only operations. The plugin provides comprehensive logging to show all connection strategies.
     </div>
     
     <div class="info status">
@@ -387,7 +387,7 @@
                 
                 // Test CORS support for CloudFlare R2
                 try {
-                    const corsResults = await engine.services.httpClient.testCorsSupport('https://d37ci6vzurychx.cloudfront.net');
+                    const corsResults = await engine.services.httpClient.testCorsSupport('https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev');
                     log(`🌐 CloudFlare R2 CORS support: ${corsResults.supported ? '✅ Supported' : '⚠️ Limited (will use fallback)'}`);
                 } catch (corsError) {
                     log('⚠️ CORS support test failed, will use DuckDB fallback methods');
@@ -1091,8 +1091,8 @@
                 log('📊 Loading multiple taxi files for comparison...');
                 
                 const files = [
-                    'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet',
-                    'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-06.parquet'
+                    'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-01.parquet',
+                    'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-06.parquet'
                 ];
                 
                 const tables = await plugin.loadMultipleFiles(files, { alias: 'monthly_comparison' });
@@ -1176,7 +1176,7 @@
                 
                 // Load schema first
                 updateProgress(25, 'Analyzing schema...');
-                const schema = await plugin.getSchema('https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet');
+                const schema = await plugin.getSchema('https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-01.parquet');
                 
                 let schemaHtml = '<h4>📋 Data Schema</h4>';
                 schema.columns.slice(0, 5).forEach(col => {
