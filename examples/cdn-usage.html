@@ -873,7 +873,8 @@
                 
                 log('📄 Loading single NYC taxi file (January 2023)...');
                 
-                const taxiFile = 'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet';
+                //const taxiFile = 'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet';
+                const taxiFile = 'https://pub-7deacab667344397ae6d3e2ea97f11f8.r2.dev/yellow_tripdata_2023-01.parquet';
                 
                 log(`🔄 Calling plugin.loadFile with alias 'january_2023'...`);
                 const table = await plugin.loadFile(taxiFile, { alias: 'january_2023' });
@@ -945,19 +946,55 @@
                     firstRow: stats?.data?.[0],
                     dataType: typeof stats?.data,
                     fullStatsKeys: Object.keys(stats || {}),
-                    rawData: JSON.stringify(stats?.data?.slice(0, 2))
+                    rawData: JSON.stringify(stats?.data?.slice(0, 2)),
+                    columnsInfo: {
+                        hasColumns: !!stats?.columns,
+                        columnCount: stats?.columns?.length,
+                        columnNames: stats?.columns
+                    }
                 });
 
-                // Safe data access with fallbacks
-                const totalTrips = stats?.data?.[0]?.[0] || 'N/A';
-                const avgDistance = stats?.data?.[0]?.[1] || 'N/A';
-                const avgFare = stats?.data?.[0]?.[2] || 'N/A';
+                // Handle different possible data formats
+                let totalTrips = 'N/A', avgDistance = 'N/A', avgFare = 'N/A';
+                
+                if (stats?.data && stats.data.length > 0) {
+                    const firstRow = stats.data[0];
+                    log('🔍 First row analysis:', {
+                        type: typeof firstRow,
+                        isArray: Array.isArray(firstRow),
+                        isObject: typeof firstRow === 'object' && !Array.isArray(firstRow),
+                        keys: typeof firstRow === 'object' ? Object.keys(firstRow) : 'not object',
+                        values: typeof firstRow === 'object' ? Object.values(firstRow) : 'not object',
+                        rawFirstRow: JSON.stringify(firstRow)
+                    });
+                    
+                    if (Array.isArray(firstRow)) {
+                        // Array format: [total_trips, avg_distance, avg_fare]
+                        totalTrips = firstRow[0] || 'N/A';
+                        avgDistance = firstRow[1] || 'N/A';
+                        avgFare = firstRow[2] || 'N/A';
+                        log('📊 Using array format extraction');
+                    } else if (typeof firstRow === 'object' && firstRow !== null) {
+                        // Object format: {total_trips: value, avg_distance: value, avg_fare: value}
+                        totalTrips = firstRow.total_trips || firstRow['0'] || 'N/A';
+                        avgDistance = firstRow.avg_distance || firstRow['1'] || 'N/A';
+                        avgFare = firstRow.avg_fare || firstRow['2'] || 'N/A';
+                        log('📊 Using object format extraction');
+                    } else {
+                        // Fallback: treat as single value array
+                        totalTrips = firstRow || 'N/A';
+                        log('📊 Using fallback single value extraction');
+                    }
+                }
                 
                 log('📊 Extracted values:', { totalTrips, avgDistance, avgFare });
                 log('📊 Raw access attempts:', {
                     'stats.data[0][0]': stats?.data?.[0]?.[0],
                     'stats.data[0][1]': stats?.data?.[0]?.[1], 
-                    'stats.data[0][2]': stats?.data?.[0]?.[2]
+                    'stats.data[0][2]': stats?.data?.[0]?.[2],
+                    'stats.data[0].total_trips': stats?.data?.[0]?.total_trips,
+                    'stats.data[0].avg_distance': stats?.data?.[0]?.avg_distance,
+                    'stats.data[0].avg_fare': stats?.data?.[0]?.avg_fare
                 });
                 
                 addResultCard('📈 January 2023 Statistics', `
@@ -990,15 +1027,40 @@
                     LIMIT 5
                 `, [table]);
 
+                log('🕐 Peak hours query result:', peakHours);
+                
                 let peakHoursHtml = '<h4>🕐 Peak Hours</h4>';
-                peakHours.data.forEach((row, index) => {
-                    peakHoursHtml += `
-                        <div class="metric">
-                            <span>${index + 1}. ${row[0]}:00</span>
-                            <span class="metric-value">${row[1]} trips (${row[2]} avg)</span>
-                        </div>
-                    `;
-                });
+                if (peakHours?.data && peakHours.data.length > 0) {
+                    peakHours.data.forEach((row, index) => {
+                        let hour, tripCount, avgFareValue;
+                        
+                        if (Array.isArray(row)) {
+                            hour = row[0];
+                            tripCount = row[1];
+                            avgFareValue = row[2];
+                        } else if (typeof row === 'object' && row !== null) {
+                            hour = row.hour || row['hour'] || row[0];
+                            tripCount = row.trip_count || row['trip_count'] || row[1];
+                            avgFareValue = row.avg_fare || row['avg_fare'] || row[2];
+                        } else {
+                            hour = 'N/A';
+                            tripCount = 'N/A';
+                            avgFareValue = 'N/A';
+                        }
+                        
+                        // Format the fare value
+                        const formattedFare = typeof avgFareValue === 'number' ? `$${avgFareValue.toFixed(2)}` : avgFareValue;
+                        
+                        peakHoursHtml += `
+                            <div class="metric">
+                                <span>${index + 1}. ${hour}:00</span>
+                                <span class="metric-value">${tripCount} trips (${formattedFare} avg)</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    peakHoursHtml += '<p>No peak hours data available</p>';
+                }
 
                 addResultCard('🚖 Trip Patterns', peakHoursHtml);
                 
