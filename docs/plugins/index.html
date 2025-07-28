@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataPrism Plugins - Plugin Gallery</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .plugins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .plugin-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .plugin-card h3 {
+            margin-top: 0;
+            color: #007bff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .plugin-card .category {
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .plugin-card a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .plugin-card a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            margin-bottom: 20px;
+        }
+        .back-link a {
+            color: #6c757d;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        .features {
+            list-style: none;
+            padding: 0;
+        }
+        .features li {
+            padding: 4px 0;
+        }
+        .features li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-link">
+        <a href="../../">← Back to DataPrism Plugins</a>
+    </div>
+    
+    <div class="header">
+        <h1>🔌 Plugin Gallery</h1>
+        <p>Browse all available DataPrism plugins with documentation and examples</p>
+    </div>
+
+    <div class="plugins-grid">
+        <div class="plugin-card">
+            <h3>
+                📊 IronCalc Formula Engine
+                <span class="category">processing</span>
+            </h3>
+            <p>Excel-compatible formula engine powered by IronCalc WebAssembly with 180+ functions and sub-second calculation performance.</p>
+            <ul class="features">
+                <li>180+ Excel-compatible functions</li>
+                <li>WebAssembly performance</li>
+                <li>Real-time calculations</li>
+                <li>Complex spreadsheet operations</li>
+            </ul>
+            <p><a href="ironcalc-formula.html">📚 View Documentation</a></p>
+        </div>
+
+        <div class="plugin-card">
+            <h3>
+                🔗 LangGraph Integration
+                <span class="category">integration</span>
+            </h3>
+            <p>Graph-based agentic analytics workflows using LangGraph for multi-agent coordination and intelligent data analysis.</p>
+            <ul class="features">
+                <li>Multi-agent workflows</li>
+                <li>Conditional branching</li>
+                <li>Parallel execution</li>
+                <li>LLM integration</li>
+            </ul>
+            <p><a href="langgraph-integration.html">📚 View Documentation</a></p>
+        </div>
+
+        <div class="plugin-card">
+            <h3>
+                🔗 MCP Integration
+                <span class="category">integration</span>
+            </h3>
+            <p>Model Context Protocol integration enabling bidirectional tool interoperability with external MCP servers.</p>
+            <ul class="features">
+                <li>Bidirectional tool access</li>
+                <li>MCP ecosystem integration</li>
+                <li>External server connectivity</li>
+                <li>Protocol standardization</li>
+            </ul>
+            <p><a href="mcp-integration.html">📚 View Documentation</a></p>
+        </div>
+
+        <div class="plugin-card">
+            <h3>
+                📦 Parquet HTTPFS
+                <span class="category">integration</span>
+            </h3>
+            <p>Stream and query Parquet files from CloudFlare R2, AWS S3, and other cloud storage providers with automatic CORS handling.</p>
+            <ul class="features">
+                <li>Cloud storage streaming</li>
+                <li>Automatic CORS handling</li>
+                <li>Multi-provider support</li>
+                <li>Real-time querying</li>
+            </ul>
+            <p><a href="parquet-httpfs.html">📚 View Documentation</a></p>
+        </div>
+
+        <div class="plugin-card">
+            <h3>
+                📄 CSV Importer
+                <span class="category">integration</span>
+            </h3>
+            <p>High-performance CSV and TSV import with streaming support, automatic type inference, and error recovery.</p>
+            <ul class="features">
+                <li>Streaming import</li>
+                <li>Automatic type inference</li>
+                <li>Error recovery</li>
+                <li>Progress tracking</li>
+            </ul>
+            <p><em>Documentation coming soon</em></p>
+        </div>
+
+        <div class="plugin-card">
+            <h3>
+                📈 Observable Charts
+                <span class="category">visualization</span>
+            </h3>
+            <p>Interactive charts and visualizations built with Observable Framework and D3 for responsive data visualization.</p>
+            <ul class="features">
+                <li>Interactive charts</li>
+                <li>D3-powered</li>
+                <li>Responsive design</li>
+                <li>Real-time updates</li>
+            </ul>
+            <p><em>Documentation coming soon</em></p>
+        </div>
+
+        <div class="plugin-card">
+            <h3>
+                🧠 Semantic Clustering
+                <span class="category">processing</span>
+            </h3>
+            <p>ML-powered data clustering with K-means and DBSCAN algorithms, embedding generation, and interactive visualizations.</p>
+            <ul class="features">
+                <li>K-means & DBSCAN</li>
+                <li>Embedding generation</li>
+                <li>Dimensionality reduction</li>
+                <li>Interactive clusters</li>
+            </ul>
+            <p><em>Documentation coming soon</em></p>
+        </div>
+
+        <div class="plugin-card">
+            <h3>
+                📊 Performance Monitor
+                <span class="category">utility</span>
+            </h3>
+            <p>Real-time system monitoring with FPS tracking, memory usage analysis, and DuckDB query performance metrics.</p>
+            <ul class="features">
+                <li>Real-time monitoring</li>
+                <li>Memory analysis</li>
+                <li>Query performance</li>
+                <li>WebAssembly metrics</li>
+            </ul>
+            <p><em>Documentation coming soon</em></p>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+        <h3>🚀 Try the Plugins</h3>
+        <p>Experience all plugins in action with our interactive CDN demo</p>
+        <p><a href="../../examples/cdn-usage.html" style="background: #007bff; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none;">Launch CDN Demo</a></p>
+    </div>
+</body>
+</html>
